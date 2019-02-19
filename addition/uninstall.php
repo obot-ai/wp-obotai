@@ -14,3 +14,5 @@
     }
 
     obotai_delete_plugin();
+
+?>
