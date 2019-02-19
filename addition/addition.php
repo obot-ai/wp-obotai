@@ -64,11 +64,6 @@ class AdditionSetting {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'moj_table';
 		
-		$sql = "SELECT * FROM ".$table_name;
-		$results = $wpdb->get_results($sql);
-		$sql_desc = "SELECT * FROM ".$table_name." ORDER BY moj_id DESC";
-		$results_desc = $wpdb->get_results($sql_desc);
-		
 		if ( isset($_POST['addition_options'])) {
 			check_admin_referer('shoptions');
 			?>
@@ -81,9 +76,23 @@ class AdditionSetting {
 			<div class="wrap">
 				<div id="icon-edit-comments" class="icon32"><br /></div>
 				<h2>Webchat設定</h2>
-				<form action="http://wp-plugin.obot-ai.com/wp-admin/admin.php?page=addition%2Faddition.php" method="post">
+				<form action="" method="post">
 					<?php
 						wp_nonce_field('shoptions');
+		
+						// テーブルに格納
+						$wpdb->insert(
+							$table_name,
+							array(
+								'moj_key' => $_POST['addition_options']['text'],
+								'moj_url' => $_POST['addition_options']['url']
+							)
+						);
+		
+						$sql = "SELECT * FROM ".$table_name;
+						$results = $wpdb->get_results($sql);
+						$sql_desc = "SELECT * FROM ".$table_name." ORDER BY moj_id DESC";
+						$results_desc = $wpdb->get_results($sql_desc);
 					?>
 					<table class="form-table">
 						<tr valign="top">
@@ -91,11 +100,10 @@ class AdditionSetting {
 								<label for="inputtext">発行ID</label>
 							</th>
 							<td>
-								<input name="addition_options[text]" 
-									type="text"
-									id="inputtext"
-									value=""
-									class="regular-text"
+								<input
+									   name="addition_options[text]" 
+									   type="text"
+									   class="regular-text"
 								/>
 							</td>
 						</tr>
@@ -104,11 +112,10 @@ class AdditionSetting {
 								<label for="inputtext">登録URL</label>
 							</th>
 							<td>
-								<input name="addition_options[url]" 
-									type="text"
-									id="inputtext"
-									value=""
-									class="regular-text"
+								<input
+									   name="addition_options[url]" 
+									   type="text"
+									   class="regular-text"
 								/>
 							</td>
 						</tr>
@@ -146,15 +153,6 @@ class AdditionSetting {
 							value="Webchatを設定"
 						/>
 					</p>
-					<?php 
-						$wpdb->insert(
-							$table_name,
-							array(
-								'moj_key' => $_POST['addition_options']['text'],
-								'moj_url' => $_POST['addition_options']['url']
-							)
-						);
-					?>
 				</form>
 			<!-- /.wrap --></div>
 		<?php
