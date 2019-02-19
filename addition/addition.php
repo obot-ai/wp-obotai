@@ -132,7 +132,7 @@ class AdditionSetting {
 									foreach ($results as $value) {
 										if($value->moj_url){
 											// 存在する時だけ表示する
-											echo "<li>".$value->moj_url."</li>";	
+											echo "<li>".urldecode($value->moj_url)."</li>";	
 										}
 									}
 								?>
@@ -175,7 +175,7 @@ class AdditionSetting {
 		// URL登録
 		$url_list = [];
 		foreach ($results as $value) {
-			$url_list[] = $value->moj_url;
+			$url_list[] = urldecode($value->moj_url);
 		}
 		// シークレットキー登録
 		foreach ($results_desc as $value) {
