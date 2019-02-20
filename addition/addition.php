@@ -27,7 +27,7 @@ License: GPL2
 
 class ObotAISetting {
     public $obotai_db_version = '1.0';
-	
+
     function __construct() {
         register_activation_hook( __FILE__, array($this, 'obotai_install'));
         // 管理メニューに追加するフック
@@ -88,7 +88,7 @@ class ObotAISetting {
                     )
                 );
                 // シークレットキー検索用
-                $sql_key = "SELECT obotai_id,obotai_key FROM ".$table_name." ORDER BY obotai_id DESC";
+                $sql_key = "SELECT obotai_key FROM ".$table_name." ORDER BY obotai_id DESC";
                 $results_key = $wpdb->get_results($sql_key);
                 // 登録URL検索用
                 $sql_url = "SELECT obotai_url FROM ".$table_name;
@@ -125,23 +125,39 @@ class ObotAISetting {
                             <li>【シークレットキー】</li>
                             <li>
 <?php
-                                foreach ($results_key as $value) {
-                                    if($value->obotai_key){
-                                        // 最新のものだけ表示する
-                                        echo $value->obotai_key;
-                                        break;
+                                if(count($results_key)){
+                                    for($i=0; $i<count($results_key); $i++){
+                                        if($results_key[$i]->obotai_key){
+                                            // 最新のものだけ表示する
+                                            echo $results_key[$i]->obotai_key;
+                                            break;
+                                        }else if($i == count($results_key)-1){
+                                            // 要素全てが空のとき
+                                            echo "未設定";
+                                        }
                                     }
+                                }else{
+                                    // 初期表示
+                                    echo "未設定";
                                 }
 ?>
                             </li>
                             <li>【非表示ページ】</li>
 <?php
-                                foreach ($results_url as $value) {
-                                    if($value->obotai_url){
-                                    // 存在する時だけ表示する
-                                    echo "<li>".urldecode($value->obotai_url)."</li>";	
+                            if(count($results_url)){
+                                for($i=0; $i<count($results_url); $i++){
+                                    if($results_url[$i]->obotai_url){
+                                        // 存在する時だけ表示する
+                                        echo "<li>".urldecode($results_url[$i]->obotai_url)."</li>";
+                                    }else if($i == count($results_url)-1){
+                                        // 要素全てが空のとき
+                                        echo "未設定";
                                     }
                                 }
+                            }else{
+                                // 初期表示
+                                echo "未設定";
+                            }
 ?>
                         </ul></td>
                     </tr>
@@ -164,7 +180,7 @@ class ObotAISetting {
         $table_name = $wpdb->prefix . 'obotai_setting';
 
         // シークレットキー検索用
-        $sql_key = "SELECT obotai_id,obotai_key FROM ".$table_name." ORDER BY obotai_id DESC";
+        $sql_key = "SELECT obotai_key FROM ".$table_name." ORDER BY obotai_id DESC";
         $results_key = $wpdb->get_results($sql_key);
         // 登録URL検索用
         $sql_url = "SELECT obotai_url FROM ".$table_name;
@@ -198,12 +214,12 @@ class ObotAISetting {
     }
 }
 
-class ObotAISettingCord {	
+class ObotAISettingCord {
     function obotai_shortcode($atts){
         $atts = shortcode_atts(
             array(
                 'obotai_code_id' => '未設定'	//初期値
-            ), 
+            ),
             $atts,
             'obotai_code'	//ショートコード名
         );
@@ -229,7 +245,7 @@ class ObotAISettingCord {
                 '</script></div></body></html>',
             ];
             $msg = implode('', $arr);
-        }	
+        }
         return $msg;
     }
 }
