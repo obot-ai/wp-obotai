@@ -145,15 +145,18 @@ class ObotAISetting {
                             <li>【非表示ページ】</li>
 <?php
                             if(count($results_url)){
+											$k = 0;
                                 for($i=0; $i<count($results_url); $i++){
                                     if($results_url[$i]->obotai_url){
                                         // 存在する時だけ表示する
                                         echo "<li>".urldecode($results_url[$i]->obotai_url)."</li>";
-                                    }else if($i == count($results_url)-1){
-                                        // 要素全てが空のとき
-                                        echo "未設定";
+														$k ++;
                                     }
                                 }
+											if($k == 0){
+												// 要素全てが空のとき
+												echo "未設定";
+											}
                             }else{
                                 // 初期表示
                                 echo "未設定";
