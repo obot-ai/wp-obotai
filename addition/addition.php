@@ -44,10 +44,10 @@ class ObotAISetting {
         $charset_collate = $wpdb->get_charset_collate();
 
         $sql = "CREATE TABLE $table_name (
-            obotai_id mediumint(9) NOT NULL AUTO_INCREMENT,
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
             obotai_key text NOT NULL,
-            obotai_url text NOT NULL,
-            UNIQUE KEY obotai_id (obotai_id)
+            url text NOT NULL,
+            UNIQUE KEY id (id)
         ) $charset_collate;";
 
         require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
@@ -84,14 +84,14 @@ class ObotAISetting {
                     $table_name,
                     array(
                         'obotai_key' => $_POST['obotai_options']['key'],
-                        'obotai_url' => $_POST['obotai_options']['url']
+                        'url' => $_POST['obotai_options']['url']
                     )
                 );
                 // シークレットキー検索用
-                $sql_key = "SELECT obotai_key FROM ".$table_name." ORDER BY obotai_id DESC";
+                $sql_key = "SELECT obotai_key FROM ".$table_name." ORDER BY id DESC";
                 $results_key = $wpdb->get_results($sql_key);
                 // 登録URL検索用
-                $sql_url = "SELECT obotai_url FROM ".$table_name;
+                $sql_url = "SELECT url FROM ".$table_name;
                 $results_url = $wpdb->get_results($sql_url);
 ?>
                 <table class="form-table">
@@ -147,9 +147,9 @@ class ObotAISetting {
                             if(count($results_url)){
 											$k = 0;
                                 for($i=0; $i<count($results_url); $i++){
-                                    if($results_url[$i]->obotai_url){
+                                    if($results_url[$i]->url){
                                         // 存在する時だけ表示する
-                                        echo "<li>".urldecode($results_url[$i]->obotai_url)."</li>";
+                                        echo "<li>".urldecode($results_url[$i]->url)."</li>";
 														$k ++;
                                     }
                                 }
@@ -183,10 +183,10 @@ class ObotAISetting {
         $table_name = $wpdb->prefix . 'obotai_setting';
 
         // シークレットキー検索用
-        $sql_key = "SELECT obotai_key FROM ".$table_name." ORDER BY obotai_id DESC";
+        $sql_key = "SELECT obotai_key FROM ".$table_name." ORDER BY id DESC";
         $results_key = $wpdb->get_results($sql_key);
         // 登録URL検索用
-        $sql_url = "SELECT obotai_url FROM ".$table_name;
+        $sql_url = "SELECT url FROM ".$table_name;
         $results_url = $wpdb->get_results($sql_url);
 
         // 現在地
@@ -195,7 +195,7 @@ class ObotAISetting {
         // URL登録
         $url_list = [];
         foreach ($results_url as $value) {
-            $url_list[] = urldecode($value->obotai_url);
+            $url_list[] = urldecode($value->url);
         }
         // シークレットキー登録
         foreach ($results_key as $value) {
