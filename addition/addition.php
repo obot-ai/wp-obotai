@@ -38,7 +38,6 @@ class ObotAISetting {
 
 	function obotai_install() {
 		global $wpdb;
-		global $obotai_db_version;
 
 		$table_name = $wpdb->prefix . 'obotai_setting';
 		$charset_collate = $wpdb->get_charset_collate();
@@ -47,6 +46,7 @@ class ObotAISetting {
 			id mediumint(9) NOT NULL AUTO_INCREMENT,
 			obotai_key text NOT NULL,
 			url text NOT NULL,
+			valid text NOT NULL,
 			UNIQUE KEY id (id)
 		) $charset_collate;";
 
@@ -71,6 +71,28 @@ class ObotAISetting {
 				<p><strong><?php _e('保存しました'); ?></strong></p>
 			</div>
 <?php
+		}else if ( isset($_POST['add'])) {
+			check_admin_referer('shoptions');
+			$wpdb->insert(
+				$table_name,
+				array( 'valid' => 'true' )
+			);
+?>
+			<div id="message" class="updated notice is-dismissible">
+				<p><strong><?php _e('Webchatを設置しました'); ?></strong></p>
+			</div>
+<?php
+		}else if ( isset($_POST['remove'])) {
+			check_admin_referer('shoptions');
+			$wpdb->insert(
+				$table_name,
+				array( 'valid' => 'false' )
+			);
+?>
+			<div id="message" class="updated notice is-dismissible">
+				<p><strong><?php _e('Webchatを解除しました'); ?></strong></p>
+			</div>
+<?php
 		}
 ?>
 		<head><link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"></head>
@@ -84,17 +106,11 @@ class ObotAISetting {
 					// テーブルに格納
 					$wpdb->insert(
 						$table_name,
-						array(
-							'obotai_key' => $_POST['obotai_options']['key'],
-							//'url' => $_POST['obotai_options']['url']
-						)
+						array( 'obotai_key' => $_POST['obotai_options']['key'] )
 					);
-					// シークレットキー検索用
-					$sql_key = "SELECT obotai_key FROM ".$table_name." ORDER BY id DESC";
-					$results_key = $wpdb->get_results($sql_key);
-					// 登録URL検索用
-					$sql_url = "SELECT url FROM ".$table_name;
-					$results_url = $wpdb->get_results($sql_url);
+					// シークレットキー及びプラグイン判定検索用（降順）
+					$sql_desc = "SELECT obotai_key,valid FROM ".$table_name." ORDER BY id DESC";
+					$results_desc = $wpdb->get_results($sql_desc);
 ?>
 					<tr valign="top">
 						<th scope="row">
@@ -123,12 +139,11 @@ class ObotAISetting {
 					// テーブルに格納
 					$wpdb->insert(
 						$table_name,
-						array(
-							'url' => $_POST['obotai_options']['url']
-						)
+						array( 'url' => $_POST['obotai_options']['url'] )
 					);
-					$sql_url = "SELECT url FROM ".$table_name;
-					$results_url = $wpdb->get_results($sql_url);
+					// 登録URL検索用（昇順）
+					$sql_asc = "SELECT url FROM ".$table_name;
+					$results_asc = $wpdb->get_results($sql_asc);
 ?>
 					<tr valign="top">
 						<th scope="row">
@@ -157,65 +172,87 @@ class ObotAISetting {
 						</td>
 					</tr>
 				</form>
-					<tr valign="top">
-						<th scope="row">設定</th>
-						<td><ul style="list-style:none;">
-							<li>【シークレットキー】</li>
-							<li>
+				<tr valign="top">
+					<th scope="row">設定</th>
+					<td><ul style="list-style:none;">
+						<li>【シークレットキー】</li>
+						<li>
 <?php
-								if(count($results_key)){
-									for($i=0; $i<count($results_key); $i++){
-										if($results_key[$i]->obotai_key){
-											// 最新のものだけ表示する
-											echo $results_key[$i]->obotai_key;
-											break;
-										}else if($i == count($results_key)-1){
-											// 要素全てが空のとき
-											echo "未設定";
-										}
+							if(count($results_desc)){
+								for($i=0; $i<count($results_desc); $i++){
+									if($results_desc[$i]->obotai_key){
+										// 最新のものだけ表示する
+										echo $results_desc[$i]->obotai_key;
+										break;
+									}else if($i == count($results_desc)-1){
+										// 要素全てが空のとき
+										echo "未設定";
 									}
-								}else{
-									// 初期表示
-									echo "未設定";
-								}
-?>
-							</li>
-							<li>【非表示ページ】</li>
-<?php
-							if(count($results_url)){
-								$k=0;
-								for($i=0; $i<count($results_url); $i++){
-									if($results_url[$i]->url){
-										// 存在する時だけ表示する
-										echo "<li>".urldecode($results_url[$i]->url)."</li>";
-										$k ++;
-									}
-								}
-								if($k == 0){
-									// 要素全てが空のとき
-									echo "未設定";
 								}
 							}else{
 								// 初期表示
 								echo "未設定";
 							}
 ?>
-						</ul></td>
-					</tr>
-				<p class="submit">
-					<input
-						   type="submit"
-						   name="Submit"
-						   class="btn btn-primary btn-sm"
-						   value="Webchatを設定"
-					/>
-					<input
-						   type="submit"
-						   name="Submit"
-						   class="btn btn-danger btn-sm"
-						   value="Webchatを解除"
-					/>
-				</p>
+						</li>
+						<li>【非表示ページ】</li>
+<?php
+						if(count($results_asc)){
+							$k=0;
+							for($i=0; $i<count($results_asc); $i++){
+								if($results_asc[$i]->url){
+									// 存在する時だけ表示する
+									echo "<li>".urldecode($results_asc[$i]->url)."</li>";
+									$k ++;
+								}
+							}
+							if($k == 0){
+								// 要素全てが空のとき
+								echo "未設定";
+							}
+						}else{
+							// 初期表示
+							echo "未設定";
+						}
+?>
+					</ul></td>
+				</tr>
+				<form action="" method="post">
+					<p class="submit">
+<?php
+						wp_nonce_field('shoptions');
+						// プラグイン有効判定
+						for($i=0; $i<count($results_desc); $i++){
+							if($results_desc[$i]->valid){
+								// 最新の設定を反映
+								$valid = $results_desc[$i]->valid;
+								break;
+							}
+						}
+						if($valid == 'true'){
+							// プラグイン有効時
+?>
+							<input
+								   name="remove"
+								   type="submit"
+								   class="btn btn-danger btn-sm"
+								   value="Webchatを解除"
+							/>
+<?php
+						}else{
+							// プラグイン無効時
+?>
+							<input
+								   name="add"
+								   type="submit"
+								   class="btn btn-primary btn-sm"
+								   value="Webchatを設置"
+							/>
+<?php
+						}
+?>
+					</p>
+				</form>	
 			</table>
 		<!-- /.wrap --></div>
 <?php
@@ -225,37 +262,51 @@ class ObotAISetting {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'obotai_setting';
 
-		// シークレットキー検索用
-		$sql_key = "SELECT obotai_key FROM ".$table_name." ORDER BY id DESC";
-		$results_key = $wpdb->get_results($sql_key);
-		// 登録URL検索用
-		$sql_url = "SELECT url FROM ".$table_name;
-		$results_url = $wpdb->get_results($sql_url);
+		// シークレットキー及びプラグイン判定検索用（降順）
+		$sql_desc = "SELECT obotai_key,valid FROM ".$table_name." ORDER BY id DESC";
+		$results_desc = $wpdb->get_results($sql_desc);
+		// 登録URL検索用（昇順）
+		$sql_asc = "SELECT url FROM ".$table_name;
+		$results_asc = $wpdb->get_results($sql_asc);
 		
 		// 現在地
 		$now_url = get_permalink();
 		$now_url = urldecode($now_url);
 		// URL登録
 		$url_list = [];
-		foreach ($results_url as $value) {
+		foreach ($results_asc as $value) {
 			$url_list[] = urldecode($value->url);
 		}
 		// シークレットキー登録
-		foreach ($results_key as $value) {
+		foreach ($results_desc as $value) {
 			if($value->obotai_key){
 				// 最新のものだけ登録する
 				$addition_cord = $value->obotai_key;
 				break;
 			}
 		}
+		// プラグイン有効判定
+		for($i=0; $i<count($results_desc); $i++){
+			if($results_desc[$i]->valid){
+				// 最新の設定を反映
+				$valid = $results_desc[$i]->valid;
+				break;
+			}
+		}
 		
-		if(in_array($now_url, $url_list)){
-			// 現在地が登録URLに含まれる場合チャットは非表示
-			exit;
+		if($valid == 'true'){
+			// プラグイン有効時
+			if(in_array($now_url, $url_list)){
+				// 現在地が登録URLに含まれる場合チャットは非表示
+				exit;
+			}else{
+				// チャット表示
+				$short_cord = '[obotai_code obotai_code_id='.$addition_cord.']';
+				echo do_shortcode($short_cord);
+			}
 		}else{
-			// チャット表示
-			$short_cord = '[obotai_code obotai_code_id='.$addition_cord.']';
-			echo do_shortcode($short_cord);
+			// プラグイン無効時
+			exit;
 		}
 	}
 }
