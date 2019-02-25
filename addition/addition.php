@@ -38,6 +38,7 @@ class ObotAISetting {
 
 	function obotai_install() {
 		global $wpdb;
+		global $obotai_db_version;
 
 		$table_name = $wpdb->prefix . 'obotai_setting';
 		$charset_collate = $wpdb->get_charset_collate();
