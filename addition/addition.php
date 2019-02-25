@@ -58,7 +58,7 @@ class ObotAISetting {
 	}
 
 	function add_obotai_page() {
-		add_menu_page('webchat設定', 'webchat設定', 'level_8', __FILE__, array($this,'obotai_option_page'), '');
+		add_menu_page('ObotAI webchat設定', 'ObotAI', 'level_8', __FILE__, array($this,'obotai_option_page'), '');
 	}
 
 	public function obotai_option_page() {
@@ -99,7 +99,7 @@ class ObotAISetting {
 		<head><link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"></head>
 		<div class="wrap">
 			<div id="icon-edit-comments" class="icon32"><br /></div>
-			<h2>Webchat設定</h2>
+			<h2>ObotAI webchat設定</h2>
 			<table class="table">
 				<form action="" method="post">
 <?php
