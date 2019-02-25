@@ -38,7 +38,6 @@ class ObotAISetting {
 
 	function obotai_install() {
 		global $wpdb;
-		global $obotai_db_version;
 
 		$table_name = $wpdb->prefix . 'obotai_setting';
 		$charset_collate = $wpdb->get_charset_collate();
@@ -80,7 +79,7 @@ class ObotAISetting {
 			);
 ?>
 			<div id="message" class="updated notice is-dismissible">
-				<p><strong><?php _e('Webchatを設置しました'); ?></strong></p>
+				<p><strong><?php _e('Webchatを設定しました'); ?></strong></p>
 			</div>
 <?php
 		}else if ( isset($_POST['remove'])) {
@@ -137,11 +136,25 @@ class ObotAISetting {
 				<form action="" method="post">
 <?php
 					wp_nonce_field('shoptions');
-					// テーブルに格納
-					$wpdb->insert(
-						$table_name,
-						array( 'url' => $_POST['obotai_options']['url'] )
-					);
+					if ( isset($_POST['submit'])){
+						// テーブルに格納
+						$wpdb->insert(
+							$table_name,
+							array( 'url' => urldecode($_POST['obotai_options']['url'] ))
+						);
+					} else if (isset($_POST['delete'])){
+						// 指定されたurlを空欄に
+						$wpdb->update( 
+							$table_name,
+							array( 'url' => '' ), 
+							array( 'url' => urldecode($_POST['obotai_options']['url'] ))
+						);
+						// 全て空欄の行は削除
+						$wpdb->delete( 
+							$table_name,
+							array( 'obotai_key' => '', 'url' => '', 'valid' => '' )
+						);
+					}
 					// 登録URL検索用（昇順）
 					$sql_asc = "SELECT url FROM ".$table_name;
 					$results_asc = $wpdb->get_results($sql_asc);
@@ -160,13 +173,13 @@ class ObotAISetting {
 						<td>
 							<input
 								type="submit"
-								name="Submit"
+								name="submit"
 						   		class="btn btn-success btn-sm"
 						   		value="登録"
 							/>
 							<input
 								type="submit"
-								name="Submit"
+								name="delete"
 						   		class="btn btn-danger btn-sm"
 						   		value="削除"
 							/>
@@ -247,7 +260,7 @@ class ObotAISetting {
 								   name="add"
 								   type="submit"
 								   class="btn btn-primary btn-sm"
-								   value="Webchatを設置"
+								   value="Webchatを設定"
 							/>
 <?php
 						}
@@ -276,7 +289,7 @@ class ObotAISetting {
 		// URL登録
 		$url_list = [];
 		foreach ($results_asc as $value) {
-			$url_list[] = urldecode($value->url);
+			$url_list[] = $value->url;
 		}
 		// シークレットキー登録
 		foreach ($results_desc as $value) {
