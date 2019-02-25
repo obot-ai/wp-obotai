@@ -58,7 +58,7 @@ class ObotAISetting {
 	}
 
 	function add_obotai_page() {
-		add_menu_page('ObotAI webchat設定', 'ObotAI', 'level_8', __FILE__, array($this,'obotai_option_page'), '');
+		add_menu_page('ObotAI ウェブチャット設定', 'ObotAI', 'level_8', __FILE__, array($this,'obotai_option_page'), '');
 	}
 
 	public function obotai_option_page() {
@@ -80,7 +80,7 @@ class ObotAISetting {
 			);
 ?>
 			<div id="message" class="updated notice is-dismissible">
-				<p><strong><?php _e('Webchatを設定しました'); ?></strong></p>
+				<p><strong><?php _e('ウェブチャットを設定しました'); ?></strong></p>
 			</div>
 <?php
 		}else if ( isset($_POST['remove'])) {
@@ -91,7 +91,7 @@ class ObotAISetting {
 			);
 ?>
 			<div id="message" class="updated notice is-dismissible">
-				<p><strong><?php _e('Webchatを解除しました'); ?></strong></p>
+				<p><strong><?php _e('ウェブチャットを解除しました'); ?></strong></p>
 			</div>
 <?php
 		}
@@ -99,7 +99,7 @@ class ObotAISetting {
 		<head><link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"></head>
 		<div class="wrap">
 			<div id="icon-edit-comments" class="icon32"><br /></div>
-			<h2>ObotAI webchat設定</h2>
+			<h2>ObotAI ウェブチャット設定</h2>
 			<table class="table">
 				<form action="" method="post">
 <?php
@@ -251,7 +251,7 @@ class ObotAISetting {
 								   name="remove"
 								   type="submit"
 								   class="btn btn-danger btn-sm"
-								   value="Webchatを解除"
+								   value="ウェブチャットを解除"
 							/>
 <?php
 						}else{
@@ -261,7 +261,7 @@ class ObotAISetting {
 								   name="add"
 								   type="submit"
 								   class="btn btn-primary btn-sm"
-								   value="Webchatを設定"
+								   value="ウェブチャットを設定"
 							/>
 <?php
 						}
