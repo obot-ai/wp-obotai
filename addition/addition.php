@@ -67,36 +67,16 @@ class ObotAISetting {
 
 		if ( isset($_POST['obotai_options'])) {
 			check_admin_referer('shoptions');
+			// テーブル初期化
+			$sql = "DELETE FROM ".$table_name;
+			$wpdb->query($sql);
 ?>
 			<div id="message" class="updated notice is-dismissible">
 				<p><strong><?php _e('保存しました'); ?></strong></p>
 			</div>
 <?php
-		}else if ( isset($_POST['add'])) {
-			check_admin_referer('shoptions');
-			$wpdb->insert(
-				$table_name,
-				array( 'valid' => 'true' )
-			);
-?>
-			<div id="message" class="updated notice is-dismissible">
-				<p><strong><?php _e('ウェブチャットを設定しました'); ?></strong></p>
-			</div>
-<?php
-		}else if ( isset($_POST['remove'])) {
-			check_admin_referer('shoptions');
-			$wpdb->insert(
-				$table_name,
-				array( 'valid' => 'false' )
-			);
-?>
-			<div id="message" class="updated notice is-dismissible">
-				<p><strong><?php _e('ウェブチャットを解除しました'); ?></strong></p>
-			</div>
-<?php
 		}
 ?>
-		<head><link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"></head>
 		<div class="wrap">
 			<div id="icon-edit-comments" class="icon32"><br /></div>
 			<h2>ObotAI ウェブチャット設定</h2>
@@ -107,11 +87,15 @@ class ObotAISetting {
 					// テーブルに格納
 					$wpdb->insert(
 						$table_name,
-						array( 'obotai_key' => $_POST['obotai_options']['key'] )
+						array(
+							'obotai_key' => $_POST['obotai_options']['key'],
+							'url' => $_POST['obotai_options']['url'],
+							'valid' => $_POST['obotai_options']['valid']
+						)
 					);
 					// シークレットキー及びプラグイン判定検索用（降順）
-					$sql_desc = "SELECT obotai_key,valid FROM ".$table_name." ORDER BY id DESC";
-					$results_desc = $wpdb->get_results($sql_desc);
+					$sql = "SELECT obotai_key,url,valid FROM ".$table_name;
+					$results = $wpdb->get_results($sql);
 ?>
 					<tr valign="top">
 						<th scope="row">
@@ -121,151 +105,59 @@ class ObotAISetting {
 							<input
 								   name="obotai_options[key]"
 								   type="text"
-								   class="regular-text"
-							/>
-						</td>
-						<td>
-							<input
-						   		type="submit"
-						   		name="Submit"
-						   		class="btn btn-success btn-sm"
-						   		value="登録"
+								   size="100"
+								   value="<?php echo $results[0]->obotai_key ?>"
 							/>
 						</td>
 					</tr>
-				</form>
-				<form action="" method="post">
-<?php
-					wp_nonce_field('shoptions');
-					if ( isset($_POST['submit'])){
-						// テーブルに格納
-						$wpdb->insert(
-							$table_name,
-							array( 'url' => urldecode($_POST['obotai_options']['url'] ))
-						);
-					} else if (isset($_POST['delete'])){
-						// 指定されたurlを空欄に
-						$wpdb->update( 
-							$table_name,
-							array( 'url' => '' ), 
-							array( 'url' => urldecode($_POST['obotai_options']['url'] ))
-						);
-						// 全て空欄の行は削除
-						$wpdb->delete( 
-							$table_name,
-							array( 'obotai_key' => '', 'url' => '', 'valid' => '' )
-						);
-					}
-					// 登録URL検索用（昇順）
-					$sql_asc = "SELECT url FROM ".$table_name;
-					$results_asc = $wpdb->get_results($sql_asc);
-?>
 					<tr valign="top">
 						<th scope="row">
 							<label for="inputtext">非表示ページ</label>
 						</th>
 						<td>
-							<input
-								   name="obotai_options[url]" 
-								   type="text"
-								   class="regular-text"
-							/>
-						</td>
-						<td>
-							<input
-								type="submit"
-								name="submit"
-						   		class="btn btn-success btn-sm"
-						   		value="登録"
-							/>
-							<input
-								type="submit"
-								name="delete"
-						   		class="btn btn-danger btn-sm"
-						   		value="削除"
-							/>
+							<textarea
+									  name="obotai_options[url]" 
+									  rows="10"
+									  cols="100"
+							></textarea>
 						</td>
 					</tr>
-				</form>
 				<tr valign="top">
-					<th scope="row">設定</th>
-					<td><ul style="list-style:none;">
-						<li>【シークレットキー】</li>
-						<li>
+					<th scope="row">表示設定</th>
+					<td>
+						<input
+							   name="obotai_options[valid]"
+							   type="radio"
+							   value="valid"
 <?php
-							if(count($results_desc)){
-								for($i=0; $i<count($results_desc); $i++){
-									if($results_desc[$i]->obotai_key){
-										// 最新のものだけ表示する
-										echo $results_desc[$i]->obotai_key;
-										break;
-									}else if($i == count($results_desc)-1){
-										// 要素全てが空のとき
-										echo "未設定";
-									}
-								}
-							}else{
-								// 初期表示
-								echo "未設定";
-							}
+								if( $results[0]->valid == 'valid' ){
 ?>
-						</li>
-						<li>【非表示ページ】</li>
+							   		checked
+<?php	
+								}
+?>
+						>表示
+						<input
+							   name="obotai_options[valid]"
+							   type="radio"
+							   value="unvalid"
 <?php
-						if(count($results_asc)){
-							$k=0;
-							for($i=0; $i<count($results_asc); $i++){
-								if($results_asc[$i]->url){
-									// 存在する時だけ表示する
-									echo "<li>".urldecode($results_asc[$i]->url)."</li>";
-									$k ++;
-								}
-							}
-							if($k == 0){
-								// 要素全てが空のとき
-								echo "未設定";
-							}
-						}else{
-							// 初期表示
-							echo "未設定";
-						}
+								if( $results[0]->valid != 'valid' ){
 ?>
-					</ul></td>
+							   		checked
+<?php	
+								}
+?>
+						>非表示
+					</td>
 				</tr>
-				<form action="" method="post">
 					<p class="submit">
-<?php
-						wp_nonce_field('shoptions');
-						// プラグイン有効判定
-						for($i=0; $i<count($results_desc); $i++){
-							if($results_desc[$i]->valid){
-								// 最新の設定を反映
-								$valid = $results_desc[$i]->valid;
-								break;
-							}
-						}
-						if($valid == 'true'){
-							// プラグイン有効時
-?>
 							<input
-								   name="remove"
+								   name="save"
 								   type="submit"
-								   class="btn btn-danger btn-sm"
-								   value="ウェブチャットを解除"
+								   class="button-primary"
+								   value="保存"
 							/>
-<?php
-						}else{
-							// プラグイン無効時
-?>
-							<input
-								   name="add"
-								   type="submit"
-								   class="btn btn-primary btn-sm"
-								   value="ウェブチャットを設定"
-							/>
-<?php
-						}
-?>
 					</p>
 				</form>	
 			</table>
