@@ -217,14 +217,14 @@ class ObotAISetting {
 			$url_list[] = $value->url;
 		}
 		
-		if( $results[0]->valid == 'valid' ){
+		if( $results[1]->valid == 'valid' ){
 			// ウェブチャット表示設定時
 			if(in_array($now_url, $url_list)){
 				// 現在地が登録URLに含まれる場合チャットは非表示
 				exit;
 			}else{
 				// チャット表示
-				$short_cord = '[obotai_code obotai_code_id='.$results[0]->obotai_key.']';
+				$short_cord = '[obotai_code obotai_code_id='.$results[1]->obotai_key.']';
 				echo do_shortcode($short_cord);
 			}
 		}else{
