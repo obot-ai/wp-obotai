@@ -58,7 +58,7 @@ class ObotAISetting {
 	}
 
 	function add_obotai_page() {
-		add_menu_page('ObotAI webchat設定', 'ObotAI', 'level_8', __FILE__, array($this,'obotai_option_page'), '');
+		add_menu_page('ObotAI ウェブチャット設定', 'ObotAI', 'level_8', __FILE__, array($this,'obotai_option_page'), '');
 	}
 
 	public function obotai_option_page() {
@@ -70,6 +70,15 @@ class ObotAISetting {
 			// テーブル初期化
 			$sql = "DELETE FROM ".$table_name;
 			$wpdb->query($sql);
+			// タイムゾーン設定
+			date_default_timezone_set('Asia/Tokyo');
+			// 更新時刻をテーブルに格納
+					$wpdb->insert(
+						$table_name,
+						array(
+							'date' => date('Y-m-d H:i:s')
+						)
+					);
 ?>
 			<div id="message" class="updated notice is-dismissible">
 				<p><strong><?php _e('保存しました'); ?></strong></p>
@@ -79,7 +88,7 @@ class ObotAISetting {
 ?>
 		<div class="wrap">
 			<div id="icon-edit-comments" class="icon32"><br /></div>
-			<h2>ObotAI webchat設定</h2>
+			<h2>ObotAI ウェブチャット設定</h2>
 			<table class="table">
 				<form action="" method="post">
 <?php
@@ -108,7 +117,7 @@ class ObotAISetting {
 						);
 					}
 					// データベース昇順出力
-					$sql = "SELECT obotai_key,url,valid FROM ".$table_name;
+					$sql = "SELECT obotai_key,url,valid,date FROM ".$table_name;
 					$results = $wpdb->get_results($sql);	
 ?>
 					<tr valign="top">
@@ -120,7 +129,7 @@ class ObotAISetting {
 								   name="obotai_options[key]"
 								   type="text"
 								   size="100"
-								   value="<?php echo $results[0]->obotai_key ?>"
+								   value="<?php echo $results[1]->obotai_key ?>"
 							/>
 						</td>
 					</tr>
@@ -135,7 +144,7 @@ class ObotAISetting {
 									  cols="100"
 							>
 <?php
-								for($i=1; $i<count($results); $i++){
+								for($i=2; $i<count($results); $i++){
 									echo urldecode($results[$i]->url)."\n";
 								} 
 ?>
@@ -150,7 +159,7 @@ class ObotAISetting {
 							   type="radio"
 							   value="valid"
 <?php
-								if( $results[0]->valid == 'valid' ){
+								if( $results[1]->valid == 'valid' ){
 ?>
 							   		checked
 <?php	
@@ -162,7 +171,7 @@ class ObotAISetting {
 							   type="radio"
 							   value="unvalid"
 <?php
-								if( $results[0]->valid != 'valid' ){
+								if( $results[1]->valid != 'valid' ){
 ?>
 							   		checked
 <?php	
@@ -178,6 +187,11 @@ class ObotAISetting {
 								   class="button-primary"
 								   value="保存"
 							/>
+<?php
+							if($results[0]->date){
+								echo "最終更新：".$results[0]->date;
+							}
+?>
 					</p>
 				</form>	
 			</table>
