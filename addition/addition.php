@@ -58,7 +58,7 @@ class ObotAISetting {
 	}
 
 	function add_obotai_page() {
-		add_menu_page('ObotAI ウェブチャット設定', 'ObotAI', 'level_8', __FILE__, array($this,'obotai_option_page'), '');
+		add_menu_page('ObotAI webchat設定', 'ObotAI', 'level_8', __FILE__, array($this,'obotai_option_page'), '');
 	}
 
 	public function obotai_option_page() {
@@ -79,23 +79,37 @@ class ObotAISetting {
 ?>
 		<div class="wrap">
 			<div id="icon-edit-comments" class="icon32"><br /></div>
-			<h2>ObotAI ウェブチャット設定</h2>
+			<h2>ObotAI webchat設定</h2>
 			<table class="table">
 				<form action="" method="post">
 <?php
 					wp_nonce_field('shoptions');
-					// テーブルに格納
+					// テーブルに格納（url以外）
 					$wpdb->insert(
 						$table_name,
 						array(
 							'obotai_key' => $_POST['obotai_options']['key'],
-							'url' => $_POST['obotai_options']['url'],
 							'valid' => $_POST['obotai_options']['valid']
 						)
 					);
-					// シークレットキー及びプラグイン判定検索用（降順）
+					// 登録urlを行に分割
+					$array = explode("\n", $_POST['obotai_options']['url']);
+					// 各行から空白を削除
+					$array = array_map('trim', $array);
+					// 文字数が0の行を取り除く
+					$array = array_filter($array, 'strlen');
+					// テーブルに格納（urlのみ）
+					foreach ($array as $value) {
+						$wpdb->insert(
+							$table_name,
+							array(
+								'url' => $value
+							)
+						);
+					}
+					// データベース昇順出力
 					$sql = "SELECT obotai_key,url,valid FROM ".$table_name;
-					$results = $wpdb->get_results($sql);
+					$results = $wpdb->get_results($sql);	
 ?>
 					<tr valign="top">
 						<th scope="row">
@@ -119,7 +133,13 @@ class ObotAISetting {
 									  name="obotai_options[url]" 
 									  rows="10"
 									  cols="100"
-							></textarea>
+							>
+<?php
+								for($i=1; $i<count($results); $i++){
+									echo urldecode($results[$i]->url)."\n";
+								} 
+?>
+							</textarea>
 						</td>
 					</tr>
 				<tr valign="top">
@@ -169,50 +189,31 @@ class ObotAISetting {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'obotai_setting';
 
-		// シークレットキー及びプラグイン判定検索用（降順）
-		$sql_desc = "SELECT obotai_key,valid FROM ".$table_name." ORDER BY id DESC";
-		$results_desc = $wpdb->get_results($sql_desc);
-		// 登録URL検索用（昇順）
-		$sql_asc = "SELECT url FROM ".$table_name;
-		$results_asc = $wpdb->get_results($sql_asc);
+		// データベース昇順出力
+		$sql = "SELECT obotai_key,url,valid FROM ".$table_name;
+		$results = $wpdb->get_results($sql);
 		
 		// 現在地
 		$now_url = get_permalink();
 		$now_url = urldecode($now_url);
 		// URL登録
 		$url_list = [];
-		foreach ($results_asc as $value) {
+		foreach ($results as $value) {
 			$url_list[] = $value->url;
 		}
-		// シークレットキー登録
-		foreach ($results_desc as $value) {
-			if($value->obotai_key){
-				// 最新のものだけ登録する
-				$addition_cord = $value->obotai_key;
-				break;
-			}
-		}
-		// プラグイン有効判定
-		for($i=0; $i<count($results_desc); $i++){
-			if($results_desc[$i]->valid){
-				// 最新の設定を反映
-				$valid = $results_desc[$i]->valid;
-				break;
-			}
-		}
 		
-		if($valid == 'true'){
-			// プラグイン有効時
+		if( $results[0]->valid == 'valid' ){
+			// ウェブチャット表示設定時
 			if(in_array($now_url, $url_list)){
 				// 現在地が登録URLに含まれる場合チャットは非表示
 				exit;
 			}else{
 				// チャット表示
-				$short_cord = '[obotai_code obotai_code_id='.$addition_cord.']';
+				$short_cord = '[obotai_code obotai_code_id='.$results[0]->obotai_key.']';
 				echo do_shortcode($short_cord);
 			}
 		}else{
-			// プラグイン無効時
+			// ウェブチャット非表示設定時
 			exit;
 		}
 	}
