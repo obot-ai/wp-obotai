@@ -142,13 +142,14 @@ class ObotAISetting {
 									  name="obotai_options[url]" 
 									  rows="10"
 									  cols="100"
-							>
-<?php
+							><?php
 								for($i=2; $i<count($results); $i++){
-									echo urldecode($results[$i]->url)."\n";
+									echo urldecode($results[$i]->url);
+									if($i<count($results)-1){
+										echo "\n";
+									}
 								} 
-?>
-							</textarea>
+							?></textarea>
 						</td>
 					</tr>
 				<tr valign="top">
