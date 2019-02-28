@@ -215,7 +215,7 @@ class ObotAISetting {
 		
 		// 現在地
 		$now_url = get_permalink();
-		$now_url = "/". preg_quote($now_url, '/')."/i";		// 大文字小文字区別しないようにしておく
+		$now_url = "/".preg_quote($now_url, '/')."/i";		// 大文字小文字区別しないようにしておく
 		// URL登録
 		$url_list = [];
 		foreach ($results as $value) {
@@ -259,7 +259,7 @@ class ObotAISettingCord {
 				'* {margin: 0px; box-sizing: border-box;}',
 				'#webchat,',
 				'#webchat > * {border: 1px solid #cccccc; height: 400px; max-width: 100%;}',
-				'</style><link href="file:///Users/suzukianna/Desktop/addition_759/add_css.css" rel="stylesheet"></head>',
+				'</style></head>',
 				'<body><div id="webchat" >',
 				'<script src="//cdn.botframework.com/botframework-webchat/latest/webchat.js"></script>',
 				'<script>',
