@@ -109,6 +109,11 @@ class ObotAISetting {
 					$array = array_filter($array, 'strlen');
 					// テーブルに格納（urlのみ）
 					foreach ($array as $value) {
+						// エンコード
+						$value = urlencode($value);
+						// 記号を元に戻す
+						$value = str_ireplace('%3a', ':', $value);
+						$value = str_ireplace('%2f', '/', $value);
 						$wpdb->insert(
 							$table_name,
 							array(
@@ -210,7 +215,7 @@ class ObotAISetting {
 		
 		// 現在地
 		$now_url = get_permalink();
-		$now_url = urldecode($now_url);
+		$now_url = "/". preg_quote($now_url, '/')."/i";		// 大文字小文字区別しないようにしておく
 		// URL登録
 		$url_list = [];
 		foreach ($results as $value) {
@@ -219,7 +224,7 @@ class ObotAISetting {
 		
 		if( $results[1]->valid == 'valid' ){
 			// ウェブチャット表示設定時
-			if(in_array($now_url, $url_list)){
+			if(preg_grep($now_url, $url_list)){
 				// 現在地が登録URLに含まれる場合チャットは非表示
 				exit;
 			}else{
@@ -254,7 +259,7 @@ class ObotAISettingCord {
 				'* {margin: 0px; box-sizing: border-box;}',
 				'#webchat,',
 				'#webchat > * {border: 1px solid #cccccc; height: 400px; max-width: 100%;}',
-				'</style></head>',
+				'</style><link href="file:///Users/suzukianna/Desktop/addition_759/add_css.css" rel="stylesheet"></head>',
 				'<body><div id="webchat" >',
 				'<script src="//cdn.botframework.com/botframework-webchat/latest/webchat.js"></script>',
 				'<script>',
