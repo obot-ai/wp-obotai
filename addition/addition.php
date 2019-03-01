@@ -47,17 +47,18 @@ class ObotAISetting {
             id mediumint(9) NOT NULL AUTO_INCREMENT,
             obotai_key text NOT NULL,
             url text NOT NULL,
+            valid text NOT NULL,
             UNIQUE KEY id (id)
         ) $charset_collate;";
 
         require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
         dbDelta( $sql );
-
+        
         update_option('obotai_db_version', $obotai_db_version);
     }
 
     function add_obotai_page() {
-        add_menu_page('webchat設定', 'webchat設定', 'level_8', __FILE__, array($this,'obotai_option_page'), '');
+        add_menu_page('ObotAI ウェブチャット設定', 'ObotAI', 'level_8', __FILE__, array($this,'obotai_option_page'), '');
     }
 
     public function obotai_option_page() {
@@ -66,6 +67,9 @@ class ObotAISetting {
 
         if ( isset($_POST['obotai_options'])) {
             check_admin_referer('shoptions');
+            // テーブル初期化
+            $sql = "DELETE FROM ".$table_name;
+            $wpdb->query($sql);
 ?>
             <div id="message" class="updated notice is-dismissible">
                 <p><strong><?php _e('保存しました'); ?></strong></p>
@@ -75,105 +79,115 @@ class ObotAISetting {
 ?>
         <div class="wrap">
             <div id="icon-edit-comments" class="icon32"><br /></div>
-            <h2>Webchat設定</h2>
-            <form action="" method="post">
+            <h2>ObotAI ウェブチャット設定</h2>
+            <table class="table">
+                <form action="" method="post">
 <?php
-                wp_nonce_field('shoptions');
-                // テーブルに格納
-                $wpdb->insert(
-                    $table_name,
-                    array(
-                        'obotai_key' => $_POST['obotai_options']['key'],
-                        'url' => $_POST['obotai_options']['url']
-                    )
-                );
-                // シークレットキー検索用
-                $sql_key = "SELECT obotai_key FROM ".$table_name." ORDER BY id DESC";
-                $results_key = $wpdb->get_results($sql_key);
-                // 登録URL検索用
-                $sql_url = "SELECT url FROM ".$table_name;
-                $results_url = $wpdb->get_results($sql_url);
+                    wp_nonce_field('shoptions');
+                    // テーブルに格納（url以外）
+                    $wpdb->insert(
+                        $table_name,
+                        array(
+                            'obotai_key' => $_POST['obotai_options']['key'],
+                            'valid' => $_POST['obotai_options']['valid']
+                        )
+                    );
+                    // 登録urlを行に分割
+                    $array = explode("\n", $_POST['obotai_options']['url']);
+                    // 各行から空白を削除
+                    $array = array_map('trim', $array);
+                    // 文字数が0の行を取り除く
+                    $array = array_filter($array, 'strlen');
+                    // テーブルに格納（urlのみ）
+                    foreach ($array as $value) {
+                        // エンコード
+                        $value = urlencode($value);
+                        // 記号を元に戻す
+                        $value = str_ireplace('%3a', ':', $value);
+                        $value = str_ireplace('%2f', '/', $value);
+                        $value = str_ireplace('%25', '%', $value);
+                        $wpdb->insert(
+                            $table_name,
+                            array(
+                                'url' => $value
+                            )
+                        );
+                    }
+                    // データベース昇順出力
+                    $sql = "SELECT obotai_key,url,valid FROM ".$table_name;
+                    $results = $wpdb->get_results($sql);
 ?>
-                <table class="form-table">
                     <tr valign="top">
                         <th scope="row">
-                            <label for="inputtext">発行ID</label>
+                            <label for="inputtext">シークレットキー</label>
                         </th>
                         <td>
                             <input
-                                name="obotai_options[key]" 
+                                name="obotai_options[key]"
                                 type="text"
-                                class="regular-text"
+                                size="100"
+                                value="<?php echo $results[0]->obotai_key ?>"
                             />
                         </td>
                     </tr>
                     <tr valign="top">
                         <th scope="row">
-                            <label for="inputtext">登録URL</label>
+                            <label for="inputtext">非表示ページ</label>
                         </th>
                         <td>
-                            <input
-                                name="obotai_options[url]" 
-                                type="text"
-                                class="regular-text"
-                            />
+                            <textarea
+                                    name="obotai_options[url]" 
+                                    rows="10"
+                                    cols="100"
+                            ><?php
+                                for($i=1; $i<count($results); $i++){
+                                    echo urldecode($results[$i]->url);
+                                    if($i<count($results)-1){
+                                        echo "\n";
+                                    }
+                                } 
+                            ?></textarea>
                         </td>
                     </tr>
                     <tr valign="top">
-                        <th scope="row">設定</th>
-                        <td><ul style="list-style:none;">
-                            <li>【シークレットキー】</li>
-                            <li>
+                        <th scope="row">表示設定</th>
+                        <td>
+                            <input
+                                name="obotai_options[valid]"
+                                type="radio"
+                                value="valid"
 <?php
-                                if(count($results_key)){
-                                    for($i=0; $i<count($results_key); $i++){
-                                        if($results_key[$i]->obotai_key){
-                                            // 最新のものだけ表示する
-                                            echo $results_key[$i]->obotai_key;
-                                            break;
-                                        }else if($i == count($results_key)-1){
-                                            // 要素全てが空のとき
-                                            echo "未設定";
-                                        }
-                                    }
-                                }else{
-                                    // 初期表示
-                                    echo "未設定";
+                                if( $results[0]->valid == 'valid' ){
+?>
+                                    checked
+<?php
                                 }
 ?>
-                            </li>
-                            <li>【非表示ページ】</li>
+                            >表示
+                            <input
+                                name="obotai_options[valid]"
+                                type="radio"
+                                value="unvalid"
 <?php
-                            if(count($results_url)){
-											$k = 0;
-                                for($i=0; $i<count($results_url); $i++){
-                                    if($results_url[$i]->url){
-                                        // 存在する時だけ表示する
-                                        echo "<li>".urldecode($results_url[$i]->url)."</li>";
-														$k ++;
-                                    }
-                                }
-											if($k == 0){
-												// 要素全てが空のとき
-												echo "未設定";
-											}
-                            }else{
-                                // 初期表示
-                                echo "未設定";
-                            }
+                                if( $results[0]->valid != 'valid' ){
 ?>
-                        </ul></td>
+                                    checked
+<?php
+                                }
+?>
+                            >非表示
+                        </td>
                     </tr>
-                </table>
-                <p class="submit">
-                    <input
-                        type="submit"
-                        name="Submit"
-                        class="button-primary"
-                        value="Webchatを設定"
-                    />
-                </p>
-            </form>
+                    <p class="submit">
+                        <input
+                            name="save"
+                            type="submit"
+                            class="button-primary"
+                            value="保存"
+                        />
+                    </p>
+                </form>
+            </table>
         <!-- /.wrap --></div>
 <?php
     }
@@ -182,37 +196,32 @@ class ObotAISetting {
         global $wpdb;
         $table_name = $wpdb->prefix . 'obotai_setting';
 
-        // シークレットキー検索用
-        $sql_key = "SELECT obotai_key FROM ".$table_name." ORDER BY id DESC";
-        $results_key = $wpdb->get_results($sql_key);
-        // 登録URL検索用
-        $sql_url = "SELECT url FROM ".$table_name;
-        $results_url = $wpdb->get_results($sql_url);
+        // データベース昇順出力
+        $sql = "SELECT obotai_key,url,valid FROM ".$table_name;
+        $results = $wpdb->get_results($sql);
 
         // 現在地
         $now_url = get_permalink();
-        $now_url = urldecode($now_url);
+        $now_url = "/".preg_quote($now_url, '/')."/i";        // 大文字小文字区別しないようにしておく
         // URL登録
         $url_list = [];
-        foreach ($results_url as $value) {
-            $url_list[] = urldecode($value->url);
-        }
-        // シークレットキー登録
-        foreach ($results_key as $value) {
-            if($value->obotai_key){
-                // 最新のものだけ登録する
-                $addition_cord = $value->obotai_key;
-                break;
-            }
+        foreach ($results as $value) {
+            $url_list[] = $value->url;
         }
 
-        if(in_array($now_url, $url_list)){
-            // 現在地が登録URLに含まれる場合チャットは非表示
-            exit;
+        if( $results[0]->valid == 'valid' ){
+            // ウェブチャット表示設定時
+            if(preg_grep($now_url, $url_list)){
+                // 現在地が登録URLに含まれる場合チャットは非表示
+                return;
+            }else{
+                // チャット表示
+                $short_cord = '[obotai_code obotai_code_id='.$results[0]->obotai_key.']';
+                echo do_shortcode($short_cord);
+            }
         }else{
-            // チャット表示
-            $short_cord = '[obotai_code obotai_code_id='.$addition_cord.']';
-            echo do_shortcode($short_cord);
+            // ウェブチャット非表示設定時
+            return;
         }
     }
 }
@@ -221,10 +230,10 @@ class ObotAISettingCord {
     function obotai_shortcode($atts){
         $atts = shortcode_atts(
             array(
-                'obotai_code_id' => '未設定'	//初期値
+                'obotai_code_id' => '未設定'    //初期値
             ),
             $atts,
-            'obotai_code'	//ショートコード名
+            'obotai_code'    //ショートコード名
         );
 
         if( $atts['obotai_code_id'] == '未設定'){
