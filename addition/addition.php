@@ -53,7 +53,7 @@ class ObotAISetting {
 
         require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
         dbDelta( $sql );
-
+        
         update_option('obotai_db_version', $obotai_db_version);
     }
 
@@ -86,9 +86,9 @@ class ObotAISetting {
                     wp_nonce_field('shoptions');
                     // テーブルに格納（url以外）
                     $wpdb->insert(
-                    $table_name,
-                    array(
-                        '    obotai_key' => $_POST['obotai_options']['key'],
+                        $table_name,
+                        array(
+                            'obotai_key' => $_POST['obotai_options']['key'],
                             'valid' => $_POST['obotai_options']['valid']
                         )
                     );
@@ -115,7 +115,7 @@ class ObotAISetting {
                     }
                     // データベース昇順出力
                     $sql = "SELECT obotai_key,url,valid FROM ".$table_name;
-                    $results = $wpdb->get_results($sql);	
+                    $results = $wpdb->get_results($sql);
 ?>
                     <tr valign="top">
                         <th scope="row">
@@ -124,6 +124,8 @@ class ObotAISetting {
                         <td>
                             <input
                                 name="obotai_options[key]"
+                                type="text"
+                                size="100"
                                 value="<?php echo $results[0]->obotai_key ?>"
                             />
                         </td>
@@ -134,16 +136,16 @@ class ObotAISetting {
                         </th>
                         <td>
                             <textarea
-                                name="obotai_options[url]" 
-                                rows="10"
-                                cols="100"
+                                    name="obotai_options[url]" 
+                                    rows="10"
+                                    cols="100"
                             ><?php
                                 for($i=1; $i<count($results); $i++){
                                     echo urldecode($results[$i]->url);
                                     if($i<count($results)-1){
                                         echo "\n";
                                     }
-                                }
+                                } 
                             ?></textarea>
                         </td>
                     </tr>
@@ -184,7 +186,7 @@ class ObotAISetting {
                             value="保存"
                         />
                     </p>
-                </form>	
+                </form>
             </table>
         <!-- /.wrap --></div>
 <?php
@@ -200,7 +202,7 @@ class ObotAISetting {
 
         // 現在地
         $now_url = get_permalink();
-        $now_url = "/".preg_quote($now_url, '/')."/i";		// 大文字小文字区別しないようにしておく
+        $now_url = "/".preg_quote($now_url, '/')."/i";        // 大文字小文字区別しないようにしておく
         // URL登録
         $url_list = [];
         foreach ($results as $value) {
@@ -211,7 +213,7 @@ class ObotAISetting {
             // ウェブチャット表示設定時
             if(preg_grep($now_url, $url_list)){
                 // 現在地が登録URLに含まれる場合チャットは非表示
-                exit;
+                return;
             }else{
                 // チャット表示
                 $short_cord = '[obotai_code obotai_code_id='.$results[0]->obotai_key.']';
@@ -219,7 +221,7 @@ class ObotAISetting {
             }
         }else{
             // ウェブチャット非表示設定時
-            exit;
+            return;
         }
     }
 }
@@ -228,10 +230,10 @@ class ObotAISettingCord {
     function obotai_shortcode($atts){
         $atts = shortcode_atts(
             array(
-                'obotai_code_id' => '未設定'	//初期値
+                'obotai_code_id' => '未設定'    //初期値
             ),
             $atts,
-            'obotai_code'	//ショートコード名
+            'obotai_code'    //ショートコード名
         );
 
         if( $atts['obotai_code_id'] == '未設定'){
