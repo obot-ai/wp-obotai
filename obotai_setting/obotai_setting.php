@@ -1,4 +1,4 @@
- <?php
+<?php
 /*
 Plugin Name: ObotAI
 Plugin URI: 
@@ -243,7 +243,11 @@ class ObotAISetting {
         $results = $wpdb->get_results($sql);
 
         // 現在地
-        $now_url = get_permalink();
+        if(is_front_page() || is_home()){
+            $now_url = home_url();
+        }else{
+            $now_url = get_permalink();
+        }
         $now_url = "/".preg_quote($now_url, '/')."/i";        // 大文字小文字区別しないようにしておく
         // URL登録
         $url_list = [];
@@ -294,7 +298,8 @@ class ObotAISettingCord {
                 '* {margin: 0px; box-sizing: border-box;}',
                 '#bot,',
                 '#bot > * {',
-                'border: 1px solid #cccccc; height: 400px; max-width: 100%;',
+                'border: 1px solid #cccccc; height: 400px; max-width: 100%;}',
+                '.css-1tdb3h1 img{max-height:100% !important; width:auto !important;}',
                 '</style>',
             ];
             if( $results[1]->css){
@@ -326,7 +331,7 @@ class ObotAISettingCord {
                 'sendBoxHeight: 40,',
                 'suggestedActionTextColor: "black",',
                 'suggestedActionBorder: "olid 2px #009682",',
-                'suggestedActionHeight: 30,',
+                'suggestedActionHeight: 100,',
                 '};',
                 'window.WebChat.renderWebChat({',
                 "directLine: window.WebChat.createDirectLine({ secret: '".$atts['obotai_code_id']."' }),",
