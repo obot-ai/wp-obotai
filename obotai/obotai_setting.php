@@ -317,7 +317,7 @@ class ObotAISettingCord {
             $msg = "IDが未設定です";
         } else {
             $arr_footer = [
-                '<body><div id="bot" >',
+                '<div id="bot" >',
                 '<script src="//cdn.botframework.com/botframework-webchat/latest/webchat.js"></script>',
                 '<script>',
                 'const styleOptions = {',
@@ -346,7 +346,7 @@ class ObotAISettingCord {
                 "user: { id: 'userid' },",
                 "styleOptions",
                 "}, document.getElementById('bot'));",
-                '</script></div></body>',
+                '</script></div>',
             ];
             $arr_footer = implode('', $arr_footer);
         }
