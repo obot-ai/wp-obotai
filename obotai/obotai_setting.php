@@ -33,6 +33,7 @@ class ObotAISetting {
         // 管理メニューに追加するフック
         add_action('admin_menu', array($this, 'add_obotai_page'));
         add_shortcode( 'obotai_code', array( 'ObotAISettingCord', 'obotai_shortcode' ) );
+        add_action('wp_head', array($this, 'obotai_head_function'));
         add_action('wp_footer', array($this, 'obotai_footer_function'));
     }
 
@@ -234,6 +235,36 @@ class ObotAISetting {
 <?php
     }
 
+    public function obotai_head_function() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'obotai_setting';
+
+        // データベース昇順出力
+        $sql = "SELECT css FROM ".$table_name;
+        $results = $wpdb->get_results($sql);
+
+        $arr_head = [
+            '<style>',
+            '* {margin: 0px; box-sizing: border-box;}',
+            '#bot,',
+            '#bot > * {',
+            'border: 1px solid #cccccc; height: 400px; max-width: 100%;}',
+            '.css-1tdb3h1 img{max-height:100% !important; width:auto !important;}',
+            '</style>',
+        ];
+        if( $results[1]->css){
+            for($i=1; $i<count($results); $i++) {
+                $arr_css[] = '<link href="'.$results[$i]->css.'" rel="stylesheet" />';
+            }
+        }
+
+        if(!empty($arr_css)){
+            $arr_head = array_merge($arr_head, $arr_css);
+        }
+        $arr_head = implode('', $arr_head);
+        echo $arr_head;
+    }
+
     public function obotai_footer_function() {
         global $wpdb;
         $table_name = $wpdb->prefix . 'obotai_setting';
@@ -291,24 +322,7 @@ class ObotAISettingCord {
         if( $atts['obotai_code_id'] == '未設定'){
             $msg = "IDが未設定です";
         } else {
-            $arr_head = [
-                '<!DOCTYPE html>',
-                '<html><head><meta charset="UTF-8">',
-                '<style>',
-                '* {margin: 0px; box-sizing: border-box;}',
-                '#bot,',
-                '#bot > * {',
-                'border: 1px solid #cccccc; height: 400px; max-width: 100%;}',
-                '.css-1tdb3h1 img{max-height:100% !important; width:auto !important;}',
-                '</style>',
-            ];
-            if( $results[1]->css){
-                for($i=1; $i<count($results); $i++) {
-                    $arr_css[] = '<link href="'.$results[$i]->css.'" rel="stylesheet" />';
-                }
-            }
-            $arr_body = [
-                '</head>',
+            $arr_footer = [
                 '<body><div id="bot" >',
                 '<script src="//cdn.botframework.com/botframework-webchat/latest/webchat.js"></script>',
                 '<script>',
@@ -331,25 +345,18 @@ class ObotAISettingCord {
                 'sendBoxHeight: 40,',
                 'suggestedActionTextColor: "black",',
                 'suggestedActionBorder: "olid 2px #009682",',
-                'suggestedActionHeight: 100,',
+                'suggestedActionHeight: 30,',
                 '};',
                 'window.WebChat.renderWebChat({',
                 "directLine: window.WebChat.createDirectLine({ secret: '".$atts['obotai_code_id']."' }),",
                 "user: { id: 'userid' },",
                 "styleOptions",
                 "}, document.getElementById('bot'));",
-                '</script></div></body></html>',
+                '</script></div></body>',
             ];
-            if(empty($arr_css)){
-                // css登録がない時
-                $arr = array_merge($arr_head, $arr_body);
-            }else{
-                $arr = array_merge($arr_head, $arr_css);
-                $arr = array_merge($arr, $arr_body);
-            }
-            $msg = implode('', $arr);
+            $arr_footer = implode('', $arr_footer);
         }
-        return $msg;
+        return $arr_footer;
     }
 }
 
