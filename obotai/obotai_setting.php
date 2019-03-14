@@ -305,12 +305,6 @@ class ObotAISetting {
 
 class ObotAISettingCord {
     function obotai_shortcode($atts){
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'obotai_setting';
-        // データベース昇順出力
-        $sql = "SELECT css FROM ".$table_name;
-        $results = $wpdb->get_results($sql);
-
         $atts = shortcode_atts(
             array(
                 'obotai_code_id' => '未設定'    //初期値
