@@ -33,6 +33,7 @@ class ObotAISetting {
         // 管理メニューに追加するフック
         add_action('admin_menu', array($this, 'add_obotai_page'));
         add_shortcode( 'obotai_code', array( 'ObotAISettingCord', 'obotai_shortcode' ) );
+        add_action('wp_head', array($this, 'obotai_head_function'));
         add_action('wp_footer', array($this, 'obotai_footer_function'));
     }
 
@@ -47,13 +48,14 @@ class ObotAISetting {
             id mediumint(9) NOT NULL AUTO_INCREMENT,
             obotai_key text NOT NULL,
             url text NOT NULL,
+            css text NOT NULL,
             valid text NOT NULL,
             UNIQUE KEY id (id)
         ) $charset_collate;";
 
         require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
         dbDelta( $sql );
-        
+
         update_option('obotai_db_version', $obotai_db_version);
     }
 
@@ -84,7 +86,7 @@ class ObotAISetting {
                 <form action="" method="post">
 <?php
                     wp_nonce_field('shoptions');
-                    // テーブルに格納（url以外）
+                    // テーブルに格納（url,css以外）
                     $wpdb->insert(
                         $table_name,
                         array(
@@ -92,29 +94,47 @@ class ObotAISetting {
                             'valid' => $_POST['obotai_options']['valid']
                         )
                     );
-                    // 登録urlを行に分割
-                    $array = explode("\n", $_POST['obotai_options']['url']);
+                    // 登録url,cssを行に分割
+                    $array['url'] = explode("\n", $_POST['obotai_options']['url']);
+                    $array['css'] = explode("\n", $_POST['obotai_options']['css']);
                     // 各行から空白を削除
-                    $array = array_map('trim', $array);
+                    $array['url'] = array_map('trim', $array['url']);
+                    $array['css'] = array_map('trim', $array['css']);
                     // 文字数が0の行を取り除く
-                    $array = array_filter($array, 'strlen');
-                    // テーブルに格納（urlのみ）
-                    foreach ($array as $value) {
-                        // エンコード
-                        $value = urlencode($value);
-                        // 記号を元に戻す
-                        $value = str_ireplace('%3a', ':', $value);
-                        $value = str_ireplace('%2f', '/', $value);
-                        $value = str_ireplace('%25', '%', $value);
-                        $wpdb->insert(
-                            $table_name,
-                            array(
-                                'url' => $value
-                            )
-                        );
+                    $array['url'] = array_filter($array['url'], 'strlen');
+                    $array['css'] = array_filter($array['css'], 'strlen');
+                    // indexを詰める
+                    $array['url'] = array_values($array['url']);
+                    $array['css'] = array_values($array['css']);
+                    // テーブルに格納（url,css）
+                    for($i=0, $j=0; ; $i++, $j++){
+                        if($i<count($array['url']) || $j<count($array['css'])){
+                            if(!$array['url'][$i]){
+                                $array['url'][$i] = '';
+                            }else{
+                                // エンコード（urlのみ）
+                                $array['url'][$i] = urlencode($array['url'][$i]);
+                                // 記号を元に戻す
+                                $array['url'][$i] = str_ireplace('%3a', ':', $array['url'][$i]);
+                                $array['url'][$i] = str_ireplace('%2f', '/', $array['url'][$i]);
+                                $array['url'][$i] = str_ireplace('%25', '%', $array['url'][$i]);
+                            }
+                            if(!$array['css'][$j]){
+                                $array['css'][$j] = '';
+                            }
+                            $wpdb->insert(
+                                $table_name,
+                                array(
+                                    'url' => $array['url'][$i],
+                                    'css' => $array['css'][$j]
+                                )
+                            );
+                        }else{
+                            break;
+                        }
                     }
                     // データベース昇順出力
-                    $sql = "SELECT obotai_key,url,valid FROM ".$table_name;
+                    $sql = "SELECT obotai_key,url,css,valid FROM ".$table_name;
                     $results = $wpdb->get_results($sql);
 ?>
                     <tr valign="top">
@@ -141,9 +161,32 @@ class ObotAISetting {
                                     cols="100"
                             ><?php
                                 for($i=1; $i<count($results); $i++){
-                                    echo urldecode($results[$i]->url);
-                                    if($i<count($results)-1){
-                                        echo "\n";
+                                    if($results[$i]->url != ''){
+                                        if($i>1){
+                                            echo "\n";
+                                        }
+                                        echo urldecode($results[$i]->url);
+                                    }
+                                } 
+                            ?></textarea>
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">
+                            <label for="inputtext">CSS設定</label>
+                        </th>
+                        <td>
+                            <textarea
+                                    name="obotai_options[css]" 
+                                    rows="5"
+                                    cols="100"
+                            ><?php
+                                for($i=1; $i<count($results); $i++){
+                                    if($results[$i]->css != ''){
+                                        if($i>1){
+                                            echo "\n";
+                                        }
+                                        echo $results[$i]->css;
                                     }
                                 } 
                             ?></textarea>
@@ -192,6 +235,36 @@ class ObotAISetting {
 <?php
     }
 
+    public function obotai_head_function() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'obotai_setting';
+
+        // データベース昇順出力
+        $sql = "SELECT css FROM ".$table_name;
+        $results = $wpdb->get_results($sql);
+
+        $arr_head = [
+            '<style>',
+            '* {margin: 0px; box-sizing: border-box;}',
+            '#bot,',
+            '#bot > * {',
+            'border: 1px solid #cccccc; height: 400px; max-width: 100%;}',
+            '.css-1tdb3h1 img{max-height:100% !important; width:auto !important;}',
+            '</style>',
+        ];
+        if( $results[1]->css){
+            for($i=1; $i<count($results); $i++) {
+                $arr_css[] = '<link href="'.$results[$i]->css.'" rel="stylesheet" />';
+            }
+        }
+
+        if(!empty($arr_css)){
+            $arr_head = array_merge($arr_head, $arr_css);
+        }
+        $arr_head = implode('', $arr_head);
+        echo $arr_head;
+    }
+
     public function obotai_footer_function() {
         global $wpdb;
         $table_name = $wpdb->prefix . 'obotai_setting';
@@ -201,7 +274,11 @@ class ObotAISetting {
         $results = $wpdb->get_results($sql);
 
         // 現在地
-        $now_url = get_permalink();
+        if(is_front_page() || is_home()){
+            $now_url = home_url();
+        }else{
+            $now_url = get_permalink();
+        }
         $now_url = "/".preg_quote($now_url, '/')."/i";        // 大文字小文字区別しないようにしておく
         // URL登録
         $url_list = [];
@@ -239,26 +316,41 @@ class ObotAISettingCord {
         if( $atts['obotai_code_id'] == '未設定'){
             $msg = "IDが未設定です";
         } else {
-            $arr = [
-                '<!DOCTYPE html>',
-                '<html><head><meta charset="UTF-8">',
-                '<style>',
-                '* {margin: 0px; box-sizing: border-box;}',
-                '#webchat,',
-                '#webchat > * {border: 1px solid #cccccc; height: 400px; max-width: 100%;}',
-                '</style></head>',
-                '<body><div id="webchat" >',
+            $arr_footer = [
+                '<div id="bot" >',
                 '<script src="//cdn.botframework.com/botframework-webchat/latest/webchat.js"></script>',
                 '<script>',
+                'const styleOptions = {',
+                'bubbleBackground: "rgba(217, 217, 217, 0.15)",',
+                'bubbleFromUserBackground: "rgba(0, 150, 130, 1)",',
+                'bubbleFromUserTextColor: "white",',
+                'bubbleMaxWidth: 600,',
+                'avatarSize: 50, ',
+                'botAvatarImage: "", ',
+                'botAvatarInitials: "Bot", ',
+                'userAvatarImage: "", ',
+                'userAvatarInitials: "", ',
+                'hideSendBox: false,',
+                'hideUploadButton: true,',
+                'sendBoxButtonColor: "#767676",', 
+                'sendBoxButtonColorOnDisabled: "#CCC",',
+                'sendBoxButtonColorOnFocus: "#333",',
+                'sendBoxButtonColorOnHover: "#333",',
+                'sendBoxHeight: 40,',
+                'suggestedActionTextColor: "black",',
+                'suggestedActionBorder: "olid 2px #009682",',
+                'suggestedActionHeight: 30,',
+                '};',
                 'window.WebChat.renderWebChat({',
                 "directLine: window.WebChat.createDirectLine({ secret: '".$atts['obotai_code_id']."' }),",
-                "user: { id: 'userid' }",
-                "}, document.getElementById('webchat'));",
-                '</script></div></body></html>',
+                "user: { id: 'userid' },",
+                "styleOptions",
+                "}, document.getElementById('bot'));",
+                '</script></div>',
             ];
-            $msg = implode('', $arr);
+            $arr_footer = implode('', $arr_footer);
         }
-        return $msg;
+        return $arr_footer;
     }
 }
 
