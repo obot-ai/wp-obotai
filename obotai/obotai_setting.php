@@ -30,7 +30,7 @@ class ObotAISetting {
 
     function __construct() {
         register_activation_hook( __FILE__, array($this, 'obotai_install'));
-        // 管理メニューに追加するフック
+        // 管理メニューに追加するフックChat Bot
         add_action('admin_menu', array($this, 'add_obotai_page'));
         add_shortcode( 'obotai_code', array( 'ObotAISettingCord', 'obotai_shortcode' ) );
         add_action('wp_head', array($this, 'obotai_head_function'));
@@ -244,12 +244,115 @@ class ObotAISetting {
         $results = $wpdb->get_results($sql);
 
         $arr_head = [
-            '<style>',
-            '* {margin: 0px; box-sizing: border-box;}',
-            '#bot,',
-            '#bot > * {',
-            'border: 1px solid #cccccc; height: 400px; max-width: 100%;}',
-            '.css-1tdb3h1 img{max-height:100% !important; width:auto !important;}',
+            '<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>',
+            '<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>',
+            '<style type="text/css">',
+            'html {overflow-y: scroll; }',
+            'body {padding: 0; margin: 0; }',
+            '#bot {border: 1px solid #000000; height: 600px; width: 460px; background-color: #FFFFFF; position: fixed; top: 100% - 100px);',
+            'bottom: calc(0% + 50px); right: 40px; visibility: hidden; opacity: 0; max-height: calc(97% - 50px); max-width: 100%;}',
+            '#bot_toggle {width: 80px; height: auto; position: fixed; bottom: calc(0%); right: 0.2vw; display: block; }',
+            '.wc-message-groups {transform: translateY(0); outline: 0; overflow-x: hidden; overflow-y: scroll; padding: 10px; position: absolute; bottom: 50px; left: 0; right: 0; top: 40px; transition: transform 0.2s cubic-bezier(0, 0, 0.5, 1); }',
+            '.wc-message-group-content {overflow: hidden; }',
+            '.wc-message svg.wc-message-callout {height: 22px; position: absolute; stroke: none; top: 12px; width: 6px; }',
+            '.wc-chatview-panel {overflow: hidden; position: absolute; right: 0; left: 0; top: 0; bottom: 0; }',
+            '.wc-console {
+  bottom: 0;
+  box-sizing: border-box;
+  height: 50px;
+  left: 0;
+  position: absolute;
+  right: 0;
+ }
+  
+  
+  .wc-console > .wc-upload,
+  .wc-console > .wc-textbox,
+  .wc-console > .wc-send,
+  .wc-console > .wc-mic {
+    position: absolute;
+    top: 0;
+    vertical-align: middle; }
+    
+  .wc-console label, .wc-console button {
+    cursor: pointer;
+    display: inline-block;
+    height: 40px; }
+    
+  .wc-console svg {
+    fill: #8a8a8a;
+    margin: 11px; }
+    
+  .wc-console input[type=text],
+  .wc-console textarea {
+    border: none;
+    height: 100%;
+    outline: none;
+    padding: 0;
+    resize: none;
+    width: 100%; }
+    
+  .wc-console.has-text .wc-send svg {
+    fill: #0078d7; }
+    
+  .wc-console .wc-upload {
+    cursor: pointer;
+    position: relative; }
+    
+    .wc-console .wc-upload svg {
+      height: 18px;
+      width: 26px; }
+      
+  .wc-console #wc-upload-input {
+    font-size: 0;
+    height: 0;
+    left: 0;
+    opacity: 0;
+    outline: 0;
+    position: absolute;
+    top: 0;
+    width: 0; }
+    
+  .wc-console .wc-send {
+    right: 0; }
+    
+  .wc-console .wc-send.hidden {
+    visibility: hidden; }
+    
+  .wc-console.has-upload-button .wc-textbox {
+    left: 48px; }
+    
+  .wc-console .wc-textbox {
+    bottom: 0;
+    left: 11px;
+    right: 49px; }
+    
+    .wc-console .wc-textbox input {
+      background-color: transparent; }
+      
+  .wc-console .wc-mic,
+  .wc-console .wc-send {
+    background-color: transparent;
+    border: 0;
+    padding: 0;
+    right: 0; }
+    
+    .wc-console .wc-mic.hidden,
+    .wc-console .wc-send.hidden {
+      visibility: hidden; }
+      
+  .wc-console .wc-send svg {
+    height: 18px;
+    width: 27px; }
+    
+  .wc-console .wc-mic.active path#micFilling {
+    fill: #4e3787; }
+    
+  .wc-console .wc-mic.inactive path#micFilling {
+    visibility: hidden; }
+
+.wc-console.has-text .wc-send svg {
+  fill: #0078d7; }',
             '</style>',
         ];
         if( $results[1]->css){
@@ -317,35 +420,22 @@ class ObotAISettingCord {
             $msg = "IDが未設定です";
         } else {
             $arr_footer = [
+                '<div id="bot_toggle">',
+                '<img src="http://demo.obot-ai.com/demo_apparel/images/bot_icon_sp.svg"></div>',
                 '<div id="bot" >',
-                '<script src="//cdn.botframework.com/botframework-webchat/latest/webchat.js"></script>',
+                '<script src="//cdn.botframework.com/botframework-webchat/latest/botchat.js"></script>',
                 '<script>',
-                'const styleOptions = {',
-                'bubbleBackground: "rgba(217, 217, 217, 0.15)",',
-                'bubbleFromUserBackground: "rgba(0, 150, 130, 1)",',
-                'bubbleFromUserTextColor: "white",',
-                'bubbleMaxWidth: 600,',
-                'avatarSize: 50, ',
-                'botAvatarImage: "", ',
-                'botAvatarInitials: "Bot", ',
-                'userAvatarImage: "", ',
-                'userAvatarInitials: "", ',
-                'hideSendBox: false,',
-                'hideUploadButton: true,',
-                'sendBoxButtonColor: "#767676",', 
-                'sendBoxButtonColorOnDisabled: "#CCC",',
-                'sendBoxButtonColorOnFocus: "#333",',
-                'sendBoxButtonColorOnHover: "#333",',
-                'sendBoxHeight: 40,',
-                'suggestedActionTextColor: "black",',
-                'suggestedActionBorder: "olid 2px #009682",',
-                'suggestedActionHeight: 30,',
-                '};',
-                'window.WebChat.renderWebChat({',
-                "directLine: window.WebChat.createDirectLine({ secret: '".$atts['obotai_code_id']."' }),",
-                "user: { id: 'userid' },",
-                "styleOptions",
+                'BotChat.App({',
+                "directLine: { secret: '".$atts['obotai_code_id']."' },",
+                "user: { id: 'userid' }, bot: { id: 'botid' }, resize: 'window', chatTitle: 'Consult with the coordinator', showUploadButton: false",
                 "}, document.getElementById('bot'));",
+                '/* トグル表示 */',
+                '$(function(){',
+                "$('#bot').draggable({ handle: '.wc-header' });",
+                "$('#bot_toggle').on('click', function(){",
+                "$('#bot').css('visibility')=='hidden' ? $('#bot').css({visibility:'visible'}).animate({opacity: 1}, 500) : $('#bot').css({visibility:'hidden'}).animate({opacity: 0}, 500);",
+                "});",
+                "})",
                 '</script></div>',
             ];
             $arr_footer = implode('', $arr_footer);
