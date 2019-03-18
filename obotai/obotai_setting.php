@@ -6,23 +6,23 @@ Description: ObotAIのWebChatを設置するプラグイン
 Version: 1.0.0
 Author: Mariana Ocean Japan
 Author URI: https://obot-ai.com/
-License: GPL2
+License: GPLv3
 */
 
-/*  Copyright 2019 Mariana Ocean Japan Co., Ltd. (email : obotai@marianaocean.com)
+/*  Copyright 2019 MARIANA OCEAN JAPAN Co., Ltd. (email : obotai@marianaocean.com)
  
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, version 2, as
-     published by the Free Software Foundation.
- 
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
- 
+
     You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 class ObotAISetting {
@@ -278,8 +278,8 @@ class ObotAISetting {
         $arr_head = [
             '<link href="'. plugins_url( 'css/obotai_botchat.css', __FILE__ ) . '" rel="stylesheet" />',
             '<link href="'. plugins_url( 'css/obotai_botchat_typed.css', __FILE__ ) . '" rel="stylesheet" />',
-            '<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>',
-            '<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>',
+            '<script src="//code.jquery.com/jquery-3.3.1.min.js"></script>',
+            '<script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>',
         ];
         if( $results[1]->css){
             for($i=1; $i<count($results); $i++) {
