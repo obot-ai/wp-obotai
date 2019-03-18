@@ -30,7 +30,7 @@ class ObotAISetting {
 
     function __construct() {
         register_activation_hook( __FILE__, array($this, 'obotai_install'));
-        // 管理メニューに追加するフックChat Bot
+        // 管理メニューに追加するフック
         add_action('admin_menu', array($this, 'add_obotai_page'));
         add_shortcode( 'obotai_code', array( 'ObotAISettingCord', 'obotai_shortcode' ) );
         add_action('wp_head', array($this, 'obotai_head_function'));
@@ -46,7 +46,9 @@ class ObotAISetting {
 
         $sql = "CREATE TABLE $table_name (
             id mediumint(9) NOT NULL AUTO_INCREMENT,
+            name text NOT NULL,
             obotai_key text NOT NULL,
+            user text NOT NULL,
             url text NOT NULL,
             css text NOT NULL,
             valid text NOT NULL,
@@ -90,7 +92,9 @@ class ObotAISetting {
                     $wpdb->insert(
                         $table_name,
                         array(
+                            'name' => $_POST['obotai_options']['name'],
                             'obotai_key' => $_POST['obotai_options']['key'],
+                            'user' => $_POST['obotai_options']['user'],
                             'valid' => $_POST['obotai_options']['valid']
                         )
                     );
@@ -134,9 +138,23 @@ class ObotAISetting {
                         }
                     }
                     // データベース昇順出力
-                    $sql = "SELECT obotai_key,url,css,valid FROM ".$table_name;
+                    $sql = "SELECT name,obotai_key,user,url,css,valid FROM ".$table_name;
                     $results = $wpdb->get_results($sql);
 ?>
+                     <tr valign="top">
+                        <th scope="row">
+                            <label for="inputtext">Bot名</label>
+                        </th>
+                        <td>
+                            <input
+                                name="obotai_options[name]"
+                                type="text"
+                                size="100"
+                                placeholder="Chat Bot"
+                                value="<?php echo $results[0]->name ?>"
+                            />
+                        </td>
+                    </tr>
                     <tr valign="top">
                         <th scope="row">
                             <label for="inputtext">シークレットキー</label>
@@ -147,6 +165,20 @@ class ObotAISetting {
                                 type="text"
                                 size="100"
                                 value="<?php echo $results[0]->obotai_key ?>"
+                            />
+                        </td>
+                    </tr>
+                    <tr valign="top">
+                        <th scope="row">
+                            <label for="inputtext">ユーザー名</label>
+                        </th>
+                        <td>
+                            <input
+                                name="obotai_options[user]"
+                                type="text"
+                                size="100"
+                                placeholder="お客様"
+                                value="<?php echo $results[0]->user ?>"
                             />
                         </td>
                     </tr>
@@ -244,116 +276,10 @@ class ObotAISetting {
         $results = $wpdb->get_results($sql);
 
         $arr_head = [
+            '<link href="'. plugins_url( 'css/obotai_botchat.css', __FILE__ ) . '" rel="stylesheet" />',
+            '<link href="'. plugins_url( 'css/obotai_botchat_typed.css', __FILE__ ) . '" rel="stylesheet" />',
             '<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>',
             '<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>',
-            '<style type="text/css">',
-            'html {overflow-y: scroll; }',
-            'body {padding: 0; margin: 0; }',
-            '#bot {border: 1px solid #000000; height: 600px; width: 460px; background-color: #FFFFFF; position: fixed; top: 100% - 100px);',
-            'bottom: calc(0% + 50px); right: 40px; visibility: hidden; opacity: 0; max-height: calc(97% - 50px); max-width: 100%;}',
-            '#bot_toggle {width: 80px; height: auto; position: fixed; bottom: calc(0%); right: 0.2vw; display: block; }',
-            '.wc-message-groups {transform: translateY(0); outline: 0; overflow-x: hidden; overflow-y: scroll; padding: 10px; position: absolute; bottom: 50px; left: 0; right: 0; top: 40px; transition: transform 0.2s cubic-bezier(0, 0, 0.5, 1); }',
-            '.wc-message-group-content {overflow: hidden; }',
-            '.wc-message svg.wc-message-callout {height: 22px; position: absolute; stroke: none; top: 12px; width: 6px; }',
-            '.wc-chatview-panel {overflow: hidden; position: absolute; right: 0; left: 0; top: 0; bottom: 0; }',
-            '.wc-console {
-  bottom: 0;
-  box-sizing: border-box;
-  height: 50px;
-  left: 0;
-  position: absolute;
-  right: 0;
- }
-  
-  
-  .wc-console > .wc-upload,
-  .wc-console > .wc-textbox,
-  .wc-console > .wc-send,
-  .wc-console > .wc-mic {
-    position: absolute;
-    top: 0;
-    vertical-align: middle; }
-    
-  .wc-console label, .wc-console button {
-    cursor: pointer;
-    display: inline-block;
-    height: 40px; }
-    
-  .wc-console svg {
-    fill: #8a8a8a;
-    margin: 11px; }
-    
-  .wc-console input[type=text],
-  .wc-console textarea {
-    border: none;
-    height: 100%;
-    outline: none;
-    padding: 0;
-    resize: none;
-    width: 100%; }
-    
-  .wc-console.has-text .wc-send svg {
-    fill: #0078d7; }
-    
-  .wc-console .wc-upload {
-    cursor: pointer;
-    position: relative; }
-    
-    .wc-console .wc-upload svg {
-      height: 18px;
-      width: 26px; }
-      
-  .wc-console #wc-upload-input {
-    font-size: 0;
-    height: 0;
-    left: 0;
-    opacity: 0;
-    outline: 0;
-    position: absolute;
-    top: 0;
-    width: 0; }
-    
-  .wc-console .wc-send {
-    right: 0; }
-    
-  .wc-console .wc-send.hidden {
-    visibility: hidden; }
-    
-  .wc-console.has-upload-button .wc-textbox {
-    left: 48px; }
-    
-  .wc-console .wc-textbox {
-    bottom: 0;
-    left: 11px;
-    right: 49px; }
-    
-    .wc-console .wc-textbox input {
-      background-color: transparent; }
-      
-  .wc-console .wc-mic,
-  .wc-console .wc-send {
-    background-color: transparent;
-    border: 0;
-    padding: 0;
-    right: 0; }
-    
-    .wc-console .wc-mic.hidden,
-    .wc-console .wc-send.hidden {
-      visibility: hidden; }
-      
-  .wc-console .wc-send svg {
-    height: 18px;
-    width: 27px; }
-    
-  .wc-console .wc-mic.active path#micFilling {
-    fill: #4e3787; }
-    
-  .wc-console .wc-mic.inactive path#micFilling {
-    visibility: hidden; }
-
-.wc-console.has-text .wc-send svg {
-  fill: #0078d7; }',
-            '</style>',
         ];
         if( $results[1]->css){
             for($i=1; $i<count($results); $i++) {
@@ -408,6 +334,22 @@ class ObotAISetting {
 
 class ObotAISettingCord {
     function obotai_shortcode($atts){
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'obotai_setting';
+        $sql = "SELECT name,user FROM ".$table_name;
+        $results = $wpdb->get_results($sql);
+
+        if($results[0]->name){
+            $name = $results[0]->name;
+        }else{
+            $name = "Chat Bot";
+        }
+        if($results[0]->user){
+            $user = $results[0]->user;
+        }else{
+            $user = "お客様";
+        }
+
         $atts = shortcode_atts(
             array(
                 'obotai_code_id' => '未設定'    //初期値
@@ -421,13 +363,13 @@ class ObotAISettingCord {
         } else {
             $arr_footer = [
                 '<div id="bot_toggle">',
-                '<img src="http://demo.obot-ai.com/demo_apparel/images/bot_icon_sp.svg"></div>',
+                '<img src="'. plugins_url( 'img/obotai_icon_sp.svg', __FILE__ ) . '"></div>',
                 '<div id="bot" >',
                 '<script src="//cdn.botframework.com/botframework-webchat/latest/botchat.js"></script>',
                 '<script>',
                 'BotChat.App({',
                 "directLine: { secret: '".$atts['obotai_code_id']."' },",
-                "user: { id: 'userid' }, bot: { id: 'botid' }, resize: 'window', chatTitle: 'Consult with the coordinator', showUploadButton: false",
+                "user: { id: '".$user."' }, bot: { id: 'botid' }, resize: 'window', chatTitle: '".$name."', showUploadButton: false",
                 "}, document.getElementById('bot'));",
                 '/* トグル表示 */',
                 '$(function(){',
