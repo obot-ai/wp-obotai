@@ -31,10 +31,10 @@ class ObotAISetting {
     function __construct() {
         register_activation_hook( __FILE__, array($this, 'obotai_install'));
         // 管理メニューに追加するフック
-        add_action('admin_menu', array($this, 'add_obotai_page'));
+        add_action( 'admin_menu', array($this, 'add_obotai_page'));
         add_shortcode( 'obotai_code', array( 'ObotAISettingCord', 'obotai_shortcode' ) );
-        add_action('wp_head', array($this, 'obotai_head_function'));
-        add_action('wp_footer', array($this, 'obotai_footer_function'));
+        add_action( 'wp_enqueue_scripts', array($this, 'obotai_head_function') );
+        add_action( 'wp_footer', array($this, 'obotai_footer_function'));
     }
 
     function obotai_install() {
@@ -267,31 +267,36 @@ class ObotAISetting {
 <?php
     }
 
-    public function obotai_head_function() {
+    function obotai_head_function() {
+        wp_enqueue_style( 'obotai-botchat', plugins_url( 'css/obotai_botchat.css', __FILE__ ), array() );
+        wp_enqueue_style( 'obotai-botchat-typed', plugins_url( 'css/obotai_botchat_typed.css', __FILE__ ), array() );
+        // WordPress本体から登録解除
+        wp_deregister_script( 'jquery');
+        wp_deregister_script( 'jquery-ui-core');
+        // CDN から読み込む
+        wp_enqueue_script( 'jquery', '//ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js', array(), '3.3.1' );
+        wp_enqueue_script( 'jquery-ui-core','//ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js' ,array('jquery'), '1.12.1' );
+
+        // ユーザーが用意したcssを登録
         global $wpdb;
         $table_name = $wpdb->prefix . 'obotai_setting';
-
-        // データベース昇順出力
         $sql = "SELECT css FROM ".$table_name;
         $results = $wpdb->get_results($sql);
 
+<<<<<<< HEAD:obotai.php
         $arr_head = [
             '<link href="'. plugins_url( 'css/obotai_botchat.css', __FILE__ ) . '" rel="stylesheet" />',
             '<link href="'. plugins_url( 'css/obotai_botchat_typed.css', __FILE__ ) . '" rel="stylesheet" />',
             '<script src="//code.jquery.com/jquery-3.3.1.min.js"></script>',
             '<script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>',
         ];
+=======
+>>>>>>> head部分のスクリプトとCSSの読み込みをwp_enqueueコマンドに変更:obotai/obotai_setting.php
         if( $results[1]->css){
             for($i=1; $i<count($results); $i++) {
-                $arr_css[] = '<link href="'.$results[$i]->css.'" rel="stylesheet" />';
+                wp_enqueue_style( 'obotai-css-'.$i, $results[$i]->css );
             }
         }
-
-        if(!empty($arr_css)){
-            $arr_head = array_merge($arr_head, $arr_css);
-        }
-        $arr_head = implode('', $arr_head);
-        echo $arr_head;
     }
 
     public function obotai_footer_function() {
