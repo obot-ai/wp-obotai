@@ -283,15 +283,6 @@ class ObotAISetting {
         $sql = "SELECT css FROM ".$table_name;
         $results = $wpdb->get_results($sql);
 
-<<<<<<< HEAD:obotai.php
-        $arr_head = [
-            '<link href="'. plugins_url( 'css/obotai_botchat.css', __FILE__ ) . '" rel="stylesheet" />',
-            '<link href="'. plugins_url( 'css/obotai_botchat_typed.css', __FILE__ ) . '" rel="stylesheet" />',
-            '<script src="//code.jquery.com/jquery-3.3.1.min.js"></script>',
-            '<script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>',
-        ];
-=======
->>>>>>> head部分のスクリプトとCSSの読み込みをwp_enqueueコマンドに変更:obotai/obotai_setting.php
         if( $results[1]->css){
             for($i=1; $i<count($results); $i++) {
                 wp_enqueue_style( 'obotai-css-'.$i, $results[$i]->css );
