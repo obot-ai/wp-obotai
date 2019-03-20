@@ -6,35 +6,35 @@ Description: ObotAIのWebChatを設置するプラグイン
 Version: 1.0.0
 Author: Mariana Ocean Japan
 Author URI: https://obot-ai.com/
-License: GPL2
+License: GPLv3
 */
 
-/*  Copyright 2019 Mariana Ocean Japan Co., Ltd. (email : obotai@marianaocean.com)
- 
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License, version 2, as
-     published by the Free Software Foundation.
- 
+/*  Copyright 2019 MARIANA OCEAN JAPAN Co., Ltd. (email : obotai@marianaocean.com)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
- 
+
     You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 class ObotAISetting {
     public $obotai_db_version = '1.0';
 
     function __construct() {
-        register_activation_hook( __FILE__, array($this, 'obotai_install'));
+        register_activation_hook( __FILE__, array($this, 'obotai_install') );
         // 管理メニューに追加するフック
-        add_action('admin_menu', array($this, 'add_obotai_page'));
+        add_action( 'admin_menu', array($this, 'add_obotai_page') );
         add_shortcode( 'obotai_code', array( 'ObotAISettingCord', 'obotai_shortcode' ) );
         add_action( 'wp_enqueue_scripts', array($this, 'obotai_head_function') );
-        add_action('wp_footer', array($this, 'obotai_footer_function'));
+        add_action( 'wp_footer', array($this, 'obotai_footer_function') );
     }
 
     function obotai_install() {
