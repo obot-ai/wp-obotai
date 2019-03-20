@@ -24,3 +24,10 @@ See: https://wp-plugin.obot-ai.com/
 
 
 == Upgrade Notice ==
+
+
+== Arbitrary section ==
+This plugin is relying on a 3rd party(Microsoft) as a service and under what circumstances.
+https://dev.botframework.com/
+http://www.microsoftvolumelicensing.com/DocumentSearch.aspx?Mode=3&DocumentTypeId=31
+https://privacy.microsoft.com/ja-jp/privacystatement
