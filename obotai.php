@@ -273,9 +273,9 @@ class ObotAISetting {
         // WordPress本体から登録解除
         wp_deregister_script( 'jquery');
         wp_deregister_script( 'jquery-ui-core' );
-        // アップグレード
-        wp_enqueue_script( 'jquery', 'http://code.jquery.com/jquery-3.3.1.min.js' );
-        wp_enqueue_script( 'jquery-ui-core', 'http://code.jquery.com/ui/1.12.1/jquery-ui.js', array('jquery') );
+        // upgrade
+        wp_enqueue_script( 'jquery', '//code.jquery.com/jquery-3.3.1.min.js' );
+        wp_enqueue_script( 'jquery-ui-core', '//code.jquery.com/ui/1.12.1/jquery-ui.js', array('jquery') );
 
         // ユーザーが用意したcssを登録
         global $wpdb;
