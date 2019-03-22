@@ -272,10 +272,10 @@ class ObotAISetting {
         wp_enqueue_style( 'obotai-botchat-typed', plugins_url( 'css/obotai_botchat_typed.css', __FILE__ ), array() );
         // WordPress本体から登録解除
         wp_deregister_script( 'jquery');
-        wp_deregister_script( 'jquery-ui-core');
-        // CDN から読み込む
-        wp_enqueue_script( 'jquery', '//ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js', array(), '3.3.1' );
-        wp_enqueue_script( 'jquery-ui-core','//ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js' ,array('jquery'), '1.12.1' );
+        wp_deregister_script( 'jquery-ui-core' );
+        // アップグレード
+        wp_enqueue_script( 'jquery', 'http://code.jquery.com/jquery-3.3.1.min.js' );
+        wp_enqueue_script( 'jquery-ui-core', 'http://code.jquery.com/ui/1.12.1/jquery-ui.js', array('jquery') );
 
         // ユーザーが用意したcssを登録
         global $wpdb;
