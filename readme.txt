@@ -7,7 +7,7 @@ Requires PHP: 7.0
 Stable tag: stable
 License: GPLv3
 
-WordPress plugin for ObotAI
+This is the WordPress plugin for embedding　ObotAI　WebChat in your WorePress site.
 
 
 == Installation ==
