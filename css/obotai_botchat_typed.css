@@ -43,8 +43,8 @@ body {
 .pc_main { display: block ; }
 .sp_main { display: none ; }
 
-/*Smartphone*/
-@media (max-width:740px) {
+/*mobile*/
+@media (max-width:767px) {
     #bot {
         width: 100%; 
         height: 90%;
