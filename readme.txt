@@ -35,6 +35,8 @@ For basic usage, you can also have a look at the site(https://wp-plugin.obot-ai.
 
 == Arbitrary section ==
 This plugin is relying on a 3rd party(Microsoft) as a service and under what circumstances.
+This chatbot exchanges of messages with users and stores the chat data in the ObotAI service by botframework.
+
 https://dev.botframework.com/
 http://www.microsoftvolumelicensing.com/DocumentSearch.aspx?Mode=3&DocumentTypeId=31
 https://privacy.microsoft.com/ja-jp/privacystatement
