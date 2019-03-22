@@ -11,7 +11,14 @@ WordPress plugin for ObotAI
 
 
 == Installation ==
-See: https://wp-plugin.obot-ai.com/
+1. From your WordPress admin panel, click 'Plugins' -> 'Add new'.
+2. In the browser input box, type 'ObotAI'.
+3. Select the 'ObotAI' plugin and click “Install”.
+4. Activate the plugin.
+
+You will find 'ObotAI' menu in your WordPress admin panel.
+Click 'ObotAI' and set up your ChatBot at the admin settings.
+For basic usage, you can also have a look at the site(https://wp-plugin.obot-ai.com/).
 
 
 == Frequently Asked Questions ==
