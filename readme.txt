@@ -17,7 +17,7 @@ This is the WordPress plugin for embedding　ObotAI　WebChat in your WorePress 
 4. Activate the plugin.
 
 You will find 'ObotAI' menu in your WordPress admin panel.
-Click 'ObotAI' and set up your ChatBot at the admin settings.
+Click 'ObotAI' and set up your WebChat at the admin settings.
 For basic usage, you can also have a look at the site(https://wp-plugin.obot-ai.com/).
 
 
