@@ -270,7 +270,8 @@ class ObotAISetting {
     function obotai_head_function() {
         wp_enqueue_style( 'obotai-botchat', plugins_url( 'css/obotai_botchat.css', __FILE__ ), array() );
         wp_enqueue_style( 'obotai-botchat-typed', plugins_url( 'css/obotai_botchat_typed.css', __FILE__ ), array() );
-        wp_enqueue_script( 'jquery-ui-draggable' );
+        wp_enqueue_script( 'jquery' );
+        wp_enqueue_script( 'jquery-ui-draggable', false, array( 'jquery' ) );
 
         // ユーザーが用意したcssを登録
         global $wpdb;
