@@ -270,12 +270,6 @@ class ObotAISetting {
     function obotai_head_function() {
         wp_enqueue_style( 'obotai-botchat', plugins_url( 'css/obotai_botchat.css', __FILE__ ), array() );
         wp_enqueue_style( 'obotai-botchat-typed', plugins_url( 'css/obotai_botchat_typed.css', __FILE__ ), array() );
-        // WordPress本体から登録解除
-        wp_deregister_script( 'jquery');
-        wp_deregister_script( 'jquery-ui-core' );
-        // upgrade
-        wp_enqueue_script( 'jquery', '//code.jquery.com/jquery-3.3.1.min.js' );
-        wp_enqueue_script( 'jquery-ui-core', '//code.jquery.com/ui/1.12.1/jquery-ui.js', array('jquery') );
 
         // ユーザーが用意したcssを登録
         global $wpdb;
@@ -369,12 +363,12 @@ class ObotAISettingCord {
                 "user: { id: '".$user."' }, bot: { id: 'botid' }, resize: 'window', chatTitle: '".$name."', showUploadButton: false",
                 "}, document.getElementById('bot'));",
                 '/* トグル表示 */',
-                '$(function(){',
-                "$('#bot').draggable({ handle: '.wc-header' });",
+                '(function($){',
+                //"$('#bot').draggable({ handle: '.wc-header' });",
                 "$('#bot_toggle').on('click', function(){",
                 "$('#bot').css('visibility')=='hidden' ? $('#bot').css({visibility:'visible'}).animate({opacity: 1}, 500) : $('#bot').css({visibility:'hidden'}).animate({opacity: 0}, 500);",
                 "});",
-                "})",
+                "})(jQuery)",
                 '</script></div>',
             ];
             $arr_footer = implode('', $arr_footer);
