@@ -34,7 +34,7 @@ class ObotAISetting {
         add_action( 'admin_menu', array($this, 'add_obotai_page') );
         add_shortcode( 'obotai_code', array( 'ObotAISettingCord', 'obotai_shortcode' ) );
         add_action( 'wp_enqueue_scripts', array($this, 'obotai_head_function') );
-        add_action( 'wp_footer', array($this, 'obotai_footer_function') );
+        add_action( 'wp_footer', array($this, 'obotai_footer_function'), 100 );
     }
 
     function obotai_install() {
@@ -270,6 +270,7 @@ class ObotAISetting {
     function obotai_head_function() {
         wp_enqueue_style( 'obotai-botchat', plugins_url( 'css/obotai_botchat.css', __FILE__ ), array() );
         wp_enqueue_style( 'obotai-botchat-typed', plugins_url( 'css/obotai_botchat_typed.css', __FILE__ ), array() );
+        wp_enqueue_script( 'jquery-ui-draggable' );
 
         // ユーザーが用意したcssを登録
         global $wpdb;
@@ -364,7 +365,7 @@ class ObotAISettingCord {
                 "}, document.getElementById('bot'));",
                 '/* トグル表示 */',
                 '(function($){',
-                //"$('#bot').draggable({ handle: '.wc-header' });",
+                "$('#bot').draggable({ handle: '.wc-header' });",
                 "$('#bot_toggle').on('click', function(){",
                 "$('#bot').css('visibility')=='hidden' ? $('#bot').css({visibility:'visible'}).animate({opacity: 1}, 500) : $('#bot').css({visibility:'hidden'}).animate({opacity: 0}, 500);",
                 "});",
