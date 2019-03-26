@@ -10,7 +10,7 @@ License: GPLv3
 */
 
 /*  Copyright 2019 MARIANA OCEAN JAPAN Co., Ltd. (email : obotai@marianaocean.com)
- 
+
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -29,12 +29,12 @@ class ObotAISetting {
     public $obotai_db_version = '1.0';
 
     function __construct() {
-        register_activation_hook( __FILE__, array($this, 'obotai_install'));
+        register_activation_hook( __FILE__, array($this, 'obotai_install') );
         // 管理メニューに追加するフック
-        add_action('admin_menu', array($this, 'add_obotai_page'));
+        add_action( 'admin_menu', array($this, 'add_obotai_page') );
         add_shortcode( 'obotai_code', array( 'ObotAISettingCord', 'obotai_shortcode' ) );
-        add_action('wp_head', array($this, 'obotai_head_function'));
-        add_action('wp_footer', array($this, 'obotai_footer_function'));
+        add_action( 'wp_enqueue_scripts', array($this, 'obotai_head_function') );
+        add_action( 'wp_footer', array($this, 'obotai_footer_function'), 100 );
     }
 
     function obotai_install() {
@@ -267,31 +267,22 @@ class ObotAISetting {
 <?php
     }
 
-    public function obotai_head_function() {
+    function obotai_head_function() {
+        wp_enqueue_style( 'obotai-botchat', plugins_url( 'css/obotai_botchat.css', __FILE__ ), array() );
+        wp_enqueue_style( 'obotai-botchat-typed', plugins_url( 'css/obotai_botchat_typed.css', __FILE__ ), array() );
+        wp_enqueue_script( 'jquery-ui-draggable' );
+
+        // ユーザーが用意したcssを登録
         global $wpdb;
         $table_name = $wpdb->prefix . 'obotai_setting';
-
-        // データベース昇順出力
         $sql = "SELECT css FROM ".$table_name;
         $results = $wpdb->get_results($sql);
 
-        $arr_head = [
-            '<link href="'. plugins_url( 'css/obotai_botchat.css', __FILE__ ) . '" rel="stylesheet" />',
-            '<link href="'. plugins_url( 'css/obotai_botchat_typed.css', __FILE__ ) . '" rel="stylesheet" />',
-            '<script src="//code.jquery.com/jquery-3.3.1.min.js"></script>',
-            '<script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>',
-        ];
         if( $results[1]->css){
             for($i=1; $i<count($results); $i++) {
-                $arr_css[] = '<link href="'.$results[$i]->css.'" rel="stylesheet" />';
+                wp_enqueue_style( 'obotai-css-'.$i, $results[$i]->css );
             }
         }
-
-        if(!empty($arr_css)){
-            $arr_head = array_merge($arr_head, $arr_css);
-        }
-        $arr_head = implode('', $arr_head);
-        echo $arr_head;
     }
 
     public function obotai_footer_function() {
@@ -363,7 +354,8 @@ class ObotAISettingCord {
         } else {
             $arr_footer = [
                 '<div id="bot_toggle">',
-                '<img src="'. plugins_url( 'img/obotai_icon_sp.svg', __FILE__ ) . '"></div>',
+                '<img src="'. plugins_url( 'img/obotai_icon.svg', __FILE__ ) . '" class="pc_main">',
+                '<img src="'. plugins_url( 'img/obotai_icon_sp.svg', __FILE__ ) . '" class="sp_main"></div>',
                 '<div id="bot" >',
                 '<script src="//cdn.botframework.com/botframework-webchat/latest/botchat.js"></script>',
                 '<script>',
@@ -372,12 +364,12 @@ class ObotAISettingCord {
                 "user: { id: '".$user."' }, bot: { id: 'botid' }, resize: 'window', chatTitle: '".$name."', showUploadButton: false",
                 "}, document.getElementById('bot'));",
                 '/* トグル表示 */',
-                '$(function(){',
+                '(function($){',
                 "$('#bot').draggable({ handle: '.wc-header' });",
                 "$('#bot_toggle').on('click', function(){",
                 "$('#bot').css('visibility')=='hidden' ? $('#bot').css({visibility:'visible'}).animate({opacity: 1}, 500) : $('#bot').css({visibility:'hidden'}).animate({opacity: 0}, 500);",
                 "});",
-                "})",
+                "})(jQuery)",
                 '</script></div>',
             ];
             $arr_footer = implode('', $arr_footer);
