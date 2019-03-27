@@ -21,6 +21,10 @@ You can customize the chats displayed.
 * Customized CSS
 * Hide chat on specified page
 
+This project is hosted on Github. When you find the bugs, so please report to our project.
+
+https://github.com/obot-ai/wp-obotai
+
 == Installation ==
 
 1. Upload the plugin files to the `/wp-content/plugins/obotai` directory, or install the plugin through the WordPress plugins screen directly.
