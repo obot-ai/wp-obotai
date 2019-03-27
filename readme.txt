@@ -1,5 +1,6 @@
 === ObotAI ===
-Contributors: MarianaOceanJapan
+Author: MarianaOceanJapan
+Contributors: tokibito
 Tags: chatbot
 Requires at least: 5.0
 Tested up to: 5.0.4
@@ -33,6 +34,12 @@ https://github.com/obot-ai/wp-obotai
 
 More information is available at this site: https://wp-plugin.obot-ai.com/
 
+== Frequently Asked Questions ==
+
+= Is this support only Japanese? =
+
+Currently, yes. we will support other languages in the future.
+
 == Screenshots ==
 
 1. `/assets/wp-obotai.png`
@@ -41,6 +48,11 @@ More information is available at this site: https://wp-plugin.obot-ai.com/
 
 = 1.0 =
 * First release
+
+== Upgrade Notice ==
+
+= 1.0 =
+* This is the first version.
 
 == Arbitrary section ==
 
