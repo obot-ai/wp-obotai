@@ -122,7 +122,7 @@ class ObotAISetting {
                             if(!$array['css'][$j]){
                                 $array['css'][$j] = '';
                             }else{
-                                $array['css'][$i] = urldecode($array['css'][$i]);
+                                $array['css'][$j] = urldecode($array['css'][$j]);
                             }
                             $wpdb->insert(
                                 $table_name,
@@ -279,6 +279,12 @@ class ObotAISetting {
 
         if( $results[1]->css){
             for($i=1; $i<count($results); $i++) {
+                // エンコード
+                $value->url = urlencode($results[$i]->css);
+                // 記号を元に戻す
+                $results[$i]->css = str_ireplace('%3a', ':', $results[$i]->css);
+                $results[$i]->css = str_ireplace('%2f', '/', $results[$i]->css);
+                $results[$i]->css = str_ireplace('%25', '%', $results[$i]->css);
                 wp_enqueue_style( 'obotai-css-'.$i, $results[$i]->css );
             }
         }
