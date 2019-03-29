@@ -92,10 +92,10 @@ class ObotAISetting {
                     $wpdb->insert(
                         $table_name,
                         array(
-                            'name' => $_POST['obotai_options']['name'],
-                            'obotai_key' => $_POST['obotai_options']['key'],
-                            'user' => $_POST['obotai_options']['user'],
-                            'valid' => $_POST['obotai_options']['valid']
+                            'name' => sanitize_text_field($_POST['obotai_options']['name']),
+                            'obotai_key' => sanitize_text_field($_POST['obotai_options']['key']),
+                            'user' => sanitize_text_field($_POST['obotai_options']['user']),
+                            'valid' => sanitize_text_field($_POST['obotai_options']['valid'])
                         )
                     );
                     // 登録url,cssを行に分割
@@ -116,21 +116,19 @@ class ObotAISetting {
                             if(!$array['url'][$i]){
                                 $array['url'][$i] = '';
                             }else{
-                                // エンコード（urlのみ）
-                                $array['url'][$i] = urlencode($array['url'][$i]);
-                                // 記号を元に戻す
-                                $array['url'][$i] = str_ireplace('%3a', ':', $array['url'][$i]);
-                                $array['url'][$i] = str_ireplace('%2f', '/', $array['url'][$i]);
-                                $array['url'][$i] = str_ireplace('%25', '%', $array['url'][$i]);
+                                // デコード
+                                $array['url'][$i] = urldecode($array['url'][$i]);
                             }
                             if(!$array['css'][$j]){
                                 $array['css'][$j] = '';
+                            }else{
+                                $array['css'][$j] = urldecode($array['css'][$j]);
                             }
                             $wpdb->insert(
                                 $table_name,
                                 array(
-                                    'url' => $array['url'][$i],
-                                    'css' => $array['css'][$j]
+                                    'url' => sanitize_text_field($array['url'][$i]),
+                                    'css' => sanitize_text_field($array['css'][$j])
                                 )
                             );
                         }else{
@@ -151,7 +149,7 @@ class ObotAISetting {
                                 type="text"
                                 size="100"
                                 placeholder="Chat Bot"
-                                value="<?php echo $results[0]->name ?>"
+                                value="<?php echo htmlspecialchars( $results[0]->name ) ?>"
                             />
                         </td>
                     </tr>
@@ -164,7 +162,7 @@ class ObotAISetting {
                                 name="obotai_options[key]"
                                 type="text"
                                 size="100"
-                                value="<?php echo $results[0]->obotai_key ?>"
+                                value="<?php echo htmlspecialchars( $results[0]->obotai_key ) ?>"
                             />
                         </td>
                     </tr>
@@ -178,7 +176,7 @@ class ObotAISetting {
                                 type="text"
                                 size="100"
                                 placeholder="お客様"
-                                value="<?php echo $results[0]->user ?>"
+                                value="<?php echo htmlspecialchars( $results[0]->user ) ?>"
                             />
                         </td>
                     </tr>
@@ -197,7 +195,7 @@ class ObotAISetting {
                                         if($i>1){
                                             echo "\n";
                                         }
-                                        echo urldecode($results[$i]->url);
+                                        echo htmlspecialchars($results[$i]->url);
                                     }
                                 } 
                             ?></textarea>
@@ -218,7 +216,7 @@ class ObotAISetting {
                                         if($i>1){
                                             echo "\n";
                                         }
-                                        echo $results[$i]->css;
+                                        echo htmlspecialchars($results[$i]->css);
                                     }
                                 } 
                             ?></textarea>
@@ -281,6 +279,12 @@ class ObotAISetting {
 
         if( $results[1]->css){
             for($i=1; $i<count($results); $i++) {
+                // エンコード
+                $value->url = urlencode($results[$i]->css);
+                // 記号を元に戻す
+                $results[$i]->css = str_ireplace('%3a', ':', $results[$i]->css);
+                $results[$i]->css = str_ireplace('%2f', '/', $results[$i]->css);
+                $results[$i]->css = str_ireplace('%25', '%', $results[$i]->css);
                 wp_enqueue_style( 'obotai-css-'.$i, $results[$i]->css );
             }
         }
@@ -304,7 +308,12 @@ class ObotAISetting {
         // URL登録
         $url_list = [];
         foreach ($results as $value) {
-            $url_list[] = $value->url;
+            // エンコード
+            $value->url = urlencode($value->url);
+            // 記号を元に戻す
+            $value->url = str_ireplace('%3a', ':', $value->url);
+            $value->url = str_ireplace('%2f', '/', $value->url);
+            $url_list[] = str_ireplace('%25', '%', $value->url);
         }
 
         if( $results[0]->valid == 'valid' ){
