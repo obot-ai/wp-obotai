@@ -376,7 +376,20 @@ class ObotAISettingCord {
                 "if (document.cookie.indexOf('obotConversationId') == -1) {",
                 //cookieにconversationIDがない場合は新規で取得する
                 "var cid = JSON.parse(event.target.responseText).conversationId;",
-                "document.cookie = 'obotConversationId=' + cid +';max-age=300';",
+                //UTC時間取得
+                "var expire = new Date();",
+                "var expire_hour = expire.getUTCHours();",
+                "var expire_minute = expire.getUTCMinutes();",
+                "var expire_second = expire.getUTCSeconds();",
+                //日本時間に変更
+                "var expire_jst_hour = parseInt(expire_hour)+parseInt(9);",
+                //日付を跨ぐ場合
+                "if(expire_jst_hour>23){expire_jst_hour=parseInt(expire_jst_hour)-parseInt(24)};",
+                //秒に変換
+                "var expire_jst_seconds = parseInt(expire_second)+parseInt(expire_minute)*60+parseInt(expire_jst_hour)*60*60;",
+                //日付変更までの残り時間（秒）
+                "var expire_jst_seconds = parseInt(86400)-parseInt(expire_jst_seconds);",
+                "document.cookie = 'obotConversationId=' + cid +';max-age=' + expire_jst_seconds;",
                 "}else{",
                 //cookieにconversationIDがない場合はcookieから取得する
                 "var tmp = document.cookie.split(';');",
