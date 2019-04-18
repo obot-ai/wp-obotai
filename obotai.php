@@ -402,7 +402,6 @@ class ObotAISettingCord {
             $arr_footer = implode('', $arr_footer);
         }
         return $arr_footer;
-        var_dump($http_response_header);
     }
 }
 
