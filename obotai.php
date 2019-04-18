@@ -369,8 +369,23 @@ class ObotAISettingCord {
                 '<div id="bot" >',
                 '<script src="//cdn.botframework.com/botframework-webchat/latest/botchat.js"></script>',
                 '<script>',
+                "var request = new XMLHttpRequest();",
+                "request.open('POST', 'https://directline.botframework.com/v3/directline/conversations');",
+                "request.setRequestHeader('Authorization', 'Bearer ".$atts['obotai_code_id']."');",
+                "request.addEventListener('load', (event) => {",
+                "if (document.cookie.indexOf('obotConversationId') == -1) {",
+                //cookieにconversationIDがない場合は新規で取得する
+                "var cid = JSON.parse(event.target.responseText).conversationId;",
+                "document.cookie = 'obotConversationId=' + cid +';max-age=300';",
+                "}else{",
+                //cookieにconversationIDがない場合はcookieから取得する
+                "var tmp = document.cookie.split(';');",
+                "for(var i=0;i<tmp.length;i++){",
+                "var data = tmp[i].split('=');",
+                "if (data[0].trim() == 'obotConversationId') { var cid = unescape(data[1]); }else{continue;}}",
+                "}",
                 'BotChat.App({',
-                "directLine: { secret: '".$atts['obotai_code_id']."' },",
+                "directLine: { secret: '".$atts['obotai_code_id']."', conversationId: cid, webSocket: false },",
                 "user: { id: '".$user."' }, bot: { id: 'botid' }, resize: 'window', chatTitle: '".$name."', showUploadButton: false",
                 "}, document.getElementById('bot'));",
                 '/* トグル表示 */',
@@ -379,12 +394,15 @@ class ObotAISettingCord {
                 "$('#bot_toggle').on('click', function(){",
                 "$('#bot').css('visibility')=='hidden' ? $('#bot').css({visibility:'visible'}).animate({opacity: 1}, 500) : $('#bot').css({visibility:'hidden'}).animate({opacity: 0}, 500);",
                 "});",
-                "})(jQuery)",
+                "})(jQuery);",
+                "});",
+                "request.send();",
                 '</script></div>',
             ];
             $arr_footer = implode('', $arr_footer);
         }
         return $arr_footer;
+        var_dump($http_response_header);
     }
 }
 
