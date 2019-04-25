@@ -369,6 +369,7 @@ class ObotAISettingCord {
                 '<div id="bot" >',
                 '<script src="//cdn.botframework.com/botframework-webchat/latest/botchat.js"></script>',
                 '<script>',
+                "function obotai_request(){",
                 "var request = new XMLHttpRequest();",
                 "request.open('POST', 'https://directline.botframework.com/v3/directline/conversations');",
                 "request.setRequestHeader('Authorization', 'Bearer ".$atts['obotai_code_id']."');",
@@ -410,6 +411,7 @@ class ObotAISettingCord {
                 "})(jQuery);",
                 "});",
                 "request.send();",
+                "obotai_request();",
                 '</script></div>',
             ];
             $arr_footer = implode('', $arr_footer);
