@@ -13,6 +13,8 @@
         $wpdb->query($sql);
     }
 
+    //cookie削除
+    setcookie('obotConversationId', '', time() - 1800, '/');
     obotai_delete_plugin();
 
 ?>

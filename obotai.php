@@ -369,8 +369,37 @@ class ObotAISettingCord {
                 '<div id="bot" >',
                 '<script src="//cdn.botframework.com/botframework-webchat/latest/botchat.js"></script>',
                 '<script>',
+                "function obotai_request(){",
+                "var request = new XMLHttpRequest();",
+                "request.open('POST', 'https://directline.botframework.com/v3/directline/conversations');",
+                "request.setRequestHeader('Authorization', 'Bearer ".$atts['obotai_code_id']."');",
+                "request.addEventListener('load', (event) => {",
+                "if (document.cookie.indexOf('obotConversationId') == -1) {",
+                //cookieにconversationIDがない場合は新規で取得する
+                "var cid = JSON.parse(event.target.responseText).conversationId;",
+                //UTC時間取得
+                "var expire = new Date();",
+                "var expire_hour = expire.getUTCHours();",
+                "var expire_minute = expire.getUTCMinutes();",
+                "var expire_second = expire.getUTCSeconds();",
+                //日本時間に変更
+                "var expire_jst_hour = parseInt(expire_hour)+parseInt(9);",
+                //日付を跨ぐ場合
+                "if(expire_jst_hour>23){expire_jst_hour=parseInt(expire_jst_hour)-parseInt(24)};",
+                //秒に変換
+                "var expire_jst_seconds = parseInt(expire_second)+parseInt(expire_minute)*60+parseInt(expire_jst_hour)*60*60;",
+                //日付変更までの残り時間（秒）
+                "var expire_jst_seconds = parseInt(86400)-parseInt(expire_jst_seconds);",
+                "document.cookie = 'obotConversationId=' + cid +';max-age=' + expire_jst_seconds;",
+                "}else{",
+                //cookieにconversationIDがない場合はcookieから取得する
+                "var tmp = document.cookie.split(';');",
+                "for(var i=0;i<tmp.length;i++){",
+                "var data = tmp[i].split('=');",
+                "if (data[0].trim() == 'obotConversationId') { var cid = unescape(data[1]); }else{continue;}}",
+                "}",
                 'BotChat.App({',
-                "directLine: { secret: '".$atts['obotai_code_id']."' },",
+                "directLine: { secret: '".$atts['obotai_code_id']."', conversationId: cid, webSocket: false },",
                 "user: { id: '".$user."' }, bot: { id: 'botid' }, resize: 'window', chatTitle: '".$name."', showUploadButton: false",
                 "}, document.getElementById('bot'));",
                 '/* トグル表示 */',
@@ -379,7 +408,10 @@ class ObotAISettingCord {
                 "$('#bot_toggle').on('click', function(){",
                 "$('#bot').css('visibility')=='hidden' ? $('#bot').css({visibility:'visible'}).animate({opacity: 1}, 500) : $('#bot').css({visibility:'hidden'}).animate({opacity: 0}, 500);",
                 "});",
-                "})(jQuery)",
+                "})(jQuery);",
+                "});",
+                "request.send();}",
+                "obotai_request();",
                 '</script></div>',
             ];
             $arr_footer = implode('', $arr_footer);
