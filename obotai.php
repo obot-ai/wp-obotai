@@ -410,7 +410,7 @@ class ObotAISettingCord {
                 "});",
                 "})(jQuery);",
                 "});",
-                "request.send();",
+                "request.send();}",
                 "obotai_request();",
                 '</script></div>',
             ];
