@@ -3,7 +3,7 @@
 Plugin Name: ObotAI
 Plugin URI: 
 Description: ObotAIのWebChatを設置するプラグイン
-Version: 1.0.0
+Version: 1.1.0
 Author: Mariana Ocean Japan
 Author URI: https://obot-ai.com/
 License: GPLv3

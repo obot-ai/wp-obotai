@@ -46,10 +46,17 @@ Currently, yes. we will support other languages in the future.
 
 == Changelog ==
 
+= 1.1 =
+* Kept the chat session with cookie.
+* Verified on version 4.8 of wordpress.
+
 = 1.0 =
 * First release
 
 == Upgrade Notice ==
+
+= 1.1 =
+* Small changes and verified on WordPress 4.8.
 
 = 1.0 =
 * This is the first version.
