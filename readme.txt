@@ -2,8 +2,8 @@
 Author: MarianaOceanJapan
 Contributors: tokibito
 Tags: chatbot
-Requires at least: 5.0
-Tested up to: 5.0.4
+Requires at least: 4.8
+Tested up to: 5.0
 Requires PHP: 7.0
 Stable tag: stable
 License: GPLv3
