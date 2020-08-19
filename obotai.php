@@ -3,13 +3,13 @@
 Plugin Name: ObotAI
 Plugin URI: 
 Description: ObotAIのWebChatを設置するプラグイン
-Version: 1.1.0
-Author: Mariana Ocean Japan
+Version: 2.0.0
+Author: ObotAI
 Author URI: https://obot-ai.com/
 License: GPLv3
 */
 
-/*  Copyright 2019 MARIANA OCEAN JAPAN Co., Ltd. (email : obotai@marianaocean.com)
+/*  Copyright 2020 ObotAI. (email : info@obot-ai.com)
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,14 +26,13 @@ License: GPLv3
 */
 
 class ObotAISetting {
-    public $obotai_db_version = '1.0';
+    public $obotai_db_version = '2.0';
 
     function __construct() {
         register_activation_hook( __FILE__, array($this, 'obotai_install') );
         // 管理メニューに追加するフック
         add_action( 'admin_menu', array($this, 'add_obotai_page') );
         add_shortcode( 'obotai_code', array( 'ObotAISettingCord', 'obotai_shortcode' ) );
-        add_action( 'wp_enqueue_scripts', array($this, 'obotai_head_function') );
         add_action( 'wp_footer', array($this, 'obotai_footer_function'), 100 );
     }
 
@@ -45,14 +44,12 @@ class ObotAISetting {
         $charset_collate = $wpdb->get_charset_collate();
 
         $sql = "CREATE TABLE $table_name (
-            id mediumint(9) NOT NULL AUTO_INCREMENT,
-            name text NOT NULL,
-            obotai_key text NOT NULL,
-            user text NOT NULL,
-            url text NOT NULL,
-            css text NOT NULL,
-            valid text NOT NULL,
-            UNIQUE KEY id (id)
+            `id` mediumint(9) NOT NULL AUTO_INCREMENT,
+            `cid` varchar(30) NOT NULL DEFAULT '',
+            `exclude_urls` text NOT NULL DEFAULT '',
+            `extra_js` text NOT NULL DEFAULT '',
+            `visible` tinyint(1) NOT NULL DEFAULT '0',
+            PRIMARY KEY id (id)
         ) $charset_collate;";
 
         require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
@@ -62,7 +59,7 @@ class ObotAISetting {
     }
 
     function add_obotai_page() {
-        add_menu_page('ObotAI ウェブチャット設定', 'ObotAI', 'level_8', __FILE__, array($this,'obotai_option_page'), '');
+        add_menu_page('ウェブチャット設定', 'ObotAI', 'level_8', __FILE__, array($this,'obotai_option_page'), '');
     }
 
     public function obotai_option_page() {
@@ -70,10 +67,21 @@ class ObotAISetting {
         $table_name = $wpdb->prefix . 'obotai_setting';
 
         if ( isset($_POST['obotai_options'])) {
-            check_admin_referer('shoptions');
+            check_admin_referer('obotai-settings');
             // テーブル初期化
             $sql = "DELETE FROM ".$table_name;
             $wpdb->query($sql);
+            // エスケープ解除
+            $POST = array_map( 'stripslashes_deep', $_POST);
+            $wpdb->insert(
+                $table_name,
+                array(
+                    'cid' => $POST['obotai_options']['cid'],
+                    'exclude_urls' => $POST['obotai_options']['exclude_urls'],
+                    'extra_js' => $POST['obotai_options']['extra_js'],
+                    'visible' => $POST['obotai_options']['visible']
+                )
+            );
 ?>
             <div id="message" class="updated notice is-dismissible">
                 <p><strong><?php _e('保存しました'); ?></strong></p>
@@ -84,153 +92,74 @@ class ObotAISetting {
         <div class="wrap">
             <div id="icon-edit-comments" class="icon32"><br /></div>
             <h2>ObotAI ウェブチャット設定</h2>
-            <table class="table">
-                <form action="" method="post">
+            <form action="" method="post">
 <?php
-                    wp_nonce_field('shoptions');
-                    // テーブルに格納（url,css以外）
-                    $wpdb->insert(
-                        $table_name,
-                        array(
-                            'name' => sanitize_text_field($_POST['obotai_options']['name']),
-                            'obotai_key' => sanitize_text_field($_POST['obotai_options']['key']),
-                            'user' => sanitize_text_field($_POST['obotai_options']['user']),
-                            'valid' => sanitize_text_field($_POST['obotai_options']['valid'])
-                        )
-                    );
-                    // 登録url,cssを行に分割
-                    $array['url'] = explode("\n", $_POST['obotai_options']['url']);
-                    $array['css'] = explode("\n", $_POST['obotai_options']['css']);
-                    // 各行から空白を削除
-                    $array['url'] = array_map('trim', $array['url']);
-                    $array['css'] = array_map('trim', $array['css']);
-                    // 文字数が0の行を取り除く
-                    $array['url'] = array_filter($array['url'], 'strlen');
-                    $array['css'] = array_filter($array['css'], 'strlen');
-                    // indexを詰める
-                    $array['url'] = array_values($array['url']);
-                    $array['css'] = array_values($array['css']);
-                    // テーブルに格納（url,css）
-                    for($i=0, $j=0; ; $i++, $j++){
-                        if($i<count($array['url']) || $j<count($array['css'])){
-                            if(!$array['url'][$i]){
-                                $array['url'][$i] = '';
-                            }else{
-                                // デコード
-                                $array['url'][$i] = urldecode($array['url'][$i]);
-                            }
-                            if(!$array['css'][$j]){
-                                $array['css'][$j] = '';
-                            }else{
-                                $array['css'][$j] = urldecode($array['css'][$j]);
-                            }
-                            $wpdb->insert(
-                                $table_name,
-                                array(
-                                    'url' => sanitize_text_field($array['url'][$i]),
-                                    'css' => sanitize_text_field($array['css'][$j])
-                                )
-                            );
-                        }else{
-                            break;
-                        }
-                    }
-                    // データベース昇順出力
-                    $sql = "SELECT name,obotai_key,user,url,css,valid FROM ".$table_name;
+                    wp_nonce_field('obotai-settings');
+
+                    // データベース読み込み
+                    $sql = "SELECT cid,exclude_urls,extra_js,visible FROM $table_name LIMIT 1";
                     $results = $wpdb->get_results($sql);
 ?>
-                     <tr valign="top">
+                <table class="form-table">
+                    <tr>
                         <th scope="row">
-                            <label for="inputtext">Bot名</label>
+                            <label for="cid">CID</label>
                         </th>
                         <td>
                             <input
-                                name="obotai_options[name]"
+                                id="cid" 
+                                name="obotai_options[cid]"
                                 type="text"
-                                size="100"
-                                placeholder="Chat Bot"
-                                value="<?php echo htmlspecialchars( $results[0]->name ) ?>"
-                            />
+                                size="30"
+                                value="<?php echo sanitize_text_field( $results[0]->cid ) ?>"
+                            >
                         </td>
                     </tr>
-                    <tr valign="top">
+                    <tr>
                         <th scope="row">
-                            <label for="inputtext">シークレットキー</label>
-                        </th>
-                        <td>
-                            <input
-                                name="obotai_options[key]"
-                                type="text"
-                                size="100"
-                                value="<?php echo htmlspecialchars( $results[0]->obotai_key ) ?>"
-                            />
-                        </td>
-                    </tr>
-                    <tr valign="top">
-                        <th scope="row">
-                            <label for="inputtext">ユーザー名</label>
-                        </th>
-                        <td>
-                            <input
-                                name="obotai_options[user]"
-                                type="text"
-                                size="100"
-                                placeholder="お客様"
-                                value="<?php echo htmlspecialchars( $results[0]->user ) ?>"
-                            />
-                        </td>
-                    </tr>
-                    <tr valign="top">
-                        <th scope="row">
-                            <label for="inputtext">非表示ページ</label>
+                            <label for="exclude_urls">除外URL</label>
                         </th>
                         <td>
                             <textarea
-                                    name="obotai_options[url]" 
+                                    id="exclude_urls" 
+                                    name="obotai_options[exclude_urls]" 
                                     rows="10"
                                     cols="100"
                             ><?php
-                                for($i=1; $i<count($results); $i++){
-                                    if($results[$i]->url != ''){
-                                        if($i>1){
-                                            echo "\n";
-                                        }
-                                        echo htmlspecialchars($results[$i]->url);
-                                    }
-                                } 
+                                echo $results[0]->exclude_urls
                             ?></textarea>
+                            <p class="description">
+                                URLが除外URLに一致した場合、チャットボットを表示しません。
+                            </p>
                         </td>
                     </tr>
-                    <tr valign="top">
+                    <tr>
                         <th scope="row">
-                            <label for="inputtext">CSS設定</label>
+                            <label for="extra_js">追加JavaScript</label>
                         </th>
                         <td>
                             <textarea
-                                    name="obotai_options[css]" 
-                                    rows="5"
+                                    id="extra_js" 
+                                    name="obotai_options[extra_js]" 
+                                    rows="10"
                                     cols="100"
                             ><?php
-                                for($i=1; $i<count($results); $i++){
-                                    if($results[$i]->css != ''){
-                                        if($i>1){
-                                            echo "\n";
-                                        }
-                                        echo htmlspecialchars($results[$i]->css);
-                                    }
-                                } 
+                                echo $results[0]->extra_js
                             ?></textarea>
+                            <p class="description">
+                                メニューのカスタマイズなど、obotaiHooksを記述します。カスタマイズしない場合は空のままで問題ありません。
+                            </p>
                         </td>
                     </tr>
-                    <tr valign="top">
+                    <tr>
                         <th scope="row">表示設定</th>
                         <td>
                             <input
-                                name="obotai_options[valid]"
+                                name="obotai_options[visible]"
                                 type="radio"
-                                value="valid"
+                                value="1"
 <?php
-                                if( $results[0]->valid == 'valid' ){
+                                if( $results[0]->visible == 1 ){
 ?>
                                     checked
 <?php
@@ -238,11 +167,11 @@ class ObotAISetting {
 ?>
                             >表示
                             <input
-                                name="obotai_options[valid]"
+                                name="obotai_options[visible]"
                                 type="radio"
-                                value="unvalid"
+                                value="0"
 <?php
-                                if( $results[0]->valid != 'valid' ){
+                                if( $results[0]->visible != 1 ){
 ?>
                                     checked
 <?php
@@ -251,170 +180,87 @@ class ObotAISetting {
                             >非表示
                         </td>
                     </tr>
-                    <p class="submit">
-                        <input
-                            name="save"
-                            type="submit"
-                            class="button-primary"
-                            value="保存"
-                        />
-                    </p>
-                </form>
             </table>
+            <p class="submit">
+                <input
+                    id="submit" 
+                    name="save"
+                    type="submit"
+                    class="button button-primary"
+                    value="変更を保存"
+                >
+            </p>
+        </form>
         <!-- /.wrap --></div>
 <?php
-    }
-
-    function obotai_head_function() {
-        wp_enqueue_style( 'obotai-botchat', plugins_url( 'css/obotai_botchat.css', __FILE__ ), array() );
-        wp_enqueue_style( 'obotai-botchat-typed', plugins_url( 'css/obotai_botchat_typed.css', __FILE__ ), array() );
-        wp_enqueue_script( 'jquery' );
-        wp_enqueue_script( 'jquery-ui-draggable', false, array( 'jquery' ) );
-
-        // ユーザーが用意したcssを登録
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'obotai_setting';
-        $sql = "SELECT css FROM ".$table_name;
-        $results = $wpdb->get_results($sql);
-
-        if( $results[1]->css){
-            for($i=1; $i<count($results); $i++) {
-                // エンコード
-                $value->url = urlencode($results[$i]->css);
-                // 記号を元に戻す
-                $results[$i]->css = str_ireplace('%3a', ':', $results[$i]->css);
-                $results[$i]->css = str_ireplace('%2f', '/', $results[$i]->css);
-                $results[$i]->css = str_ireplace('%25', '%', $results[$i]->css);
-                wp_enqueue_style( 'obotai-css-'.$i, $results[$i]->css );
-            }
-        }
     }
 
     public function obotai_footer_function() {
         global $wpdb;
         $table_name = $wpdb->prefix . 'obotai_setting';
 
-        // データベース昇順出力
-        $sql = "SELECT obotai_key,url,valid FROM ".$table_name;
+        // データベース読み込み
+        $sql = "SELECT cid,exclude_urls,extra_js,visible FROM $table_name LIMIT 1";
         $results = $wpdb->get_results($sql);
 
-        // 現在地
+        // 非表示の場合は出力しない
+        if ($results[0]->visible == 0) {
+            return;
+        }
+
+        // 除外URL一覧
+        $exclude_urls = explode("\n", $results[0]->exclude_urls);
+        $exclude_urls = array_map('trim', $exclude_urls);
+        $exclude_urls = array_filter($exclude_urls, 'strlen');
+        $exclude_urls = array_values($exclude_urls);
+
+        // 現在のURL
         if(is_front_page() || is_home()){
             $now_url = home_url();
         }else{
             $now_url = get_permalink();
         }
-        $now_url = "/".preg_quote($now_url, '/')."/i";        // 大文字小文字区別しないようにしておく
-        // URL登録
-        $url_list = [];
-        foreach ($results as $value) {
-            // エンコード
-            $value->url = urlencode($value->url);
-            // 記号を元に戻す
-            $value->url = str_ireplace('%3a', ':', $value->url);
-            $value->url = str_ireplace('%2f', '/', $value->url);
-            $url_list[] = str_ireplace('%25', '%', $value->url);
+        // 除外URLにマッチする場合は出力しない
+        foreach ($exclude_urls as $url) {
+            $pattern = "/".preg_quote($url, '/')."/i";
+            if (preg_match($pattern, $now_url)){
+                return;
+            }
         }
 
-        if( $results[0]->valid == 'valid' ){
-            // ウェブチャット表示設定時
-            if(preg_grep($now_url, $url_list)){
-                // 現在地が登録URLに含まれる場合チャットは非表示
-                return;
-            }else{
-                // チャット表示
-                $short_cord = '[obotai_code obotai_code_id='.$results[0]->obotai_key.']';
-                echo do_shortcode($short_cord);
-            }
-        }else{
-            // ウェブチャット非表示設定時
-            return;
-        }
+        // ウェブチャット表示設定時
+        $short_cord = '[obotai_code obotai_code_id='.$results[0]->cid.']';
+        echo do_shortcode($short_cord);
     }
 }
 
 class ObotAISettingCord {
     function obotai_shortcode($atts){
         global $wpdb;
-        $table_name = $wpdb->prefix . 'obotai_setting';
-        $sql = "SELECT name,user FROM ".$table_name;
-        $results = $wpdb->get_results($sql);
 
-        if($results[0]->name){
-            $name = $results[0]->name;
-        }else{
-            $name = "Chat Bot";
-        }
-        if($results[0]->user){
-            $user = $results[0]->user;
-        }else{
-            $user = "お客様";
-        }
-
-        $atts = shortcode_atts(
+        $params = shortcode_atts(
             array(
-                'obotai_code_id' => '未設定'    //初期値
+                'obotai_code_id' => ''    //初期値
             ),
             $atts,
             'obotai_code'    //ショートコード名
         );
+        // CIDがない場合の出力
+        if ($params['obotai_code_id'] == '') {
+            return "<!-- obotai CIDが未設定です -->";
+        }
+
+        $table_name = $wpdb->prefix . 'obotai_setting';
+        $sql = "SELECT extra_js FROM " . $table_name . " WHERE cid='" . $params['obotai_code_id'] . "' LIMIT 1";
+        $results = $wpdb->get_results($sql);
 
         if( $atts['obotai_code_id'] == '未設定'){
-            $msg = "IDが未設定です";
-        } else {
-            $arr_footer = [
-                '<div id="bot_toggle">',
-                '<img src="'. plugins_url( 'img/obotai_icon.svg', __FILE__ ) . '" class="pc_main">',
-                '<img src="'. plugins_url( 'img/obotai_icon_sp.svg', __FILE__ ) . '" class="sp_main"></div>',
-                '<div id="bot" >',
-                '<script src="//cdn.botframework.com/botframework-webchat/latest/botchat.js"></script>',
-                '<script>',
-                "function obotai_request(){",
-                "var request = new XMLHttpRequest();",
-                "request.open('POST', 'https://directline.botframework.com/v3/directline/conversations');",
-                "request.setRequestHeader('Authorization', 'Bearer ".$atts['obotai_code_id']."');",
-                "request.addEventListener('load', (event) => {",
-                "if (document.cookie.indexOf('obotConversationId') == -1) {",
-                //cookieにconversationIDがない場合は新規で取得する
-                "var cid = JSON.parse(event.target.responseText).conversationId;",
-                //UTC時間取得
-                "var expire = new Date();",
-                "var expire_hour = expire.getUTCHours();",
-                "var expire_minute = expire.getUTCMinutes();",
-                "var expire_second = expire.getUTCSeconds();",
-                //日本時間に変更
-                "var expire_jst_hour = parseInt(expire_hour)+parseInt(9);",
-                //日付を跨ぐ場合
-                "if(expire_jst_hour>23){expire_jst_hour=parseInt(expire_jst_hour)-parseInt(24)};",
-                //秒に変換
-                "var expire_jst_seconds = parseInt(expire_second)+parseInt(expire_minute)*60+parseInt(expire_jst_hour)*60*60;",
-                //日付変更までの残り時間（秒）
-                "var expire_jst_seconds = parseInt(86400)-parseInt(expire_jst_seconds);",
-                "document.cookie = 'obotConversationId=' + cid +';max-age=' + expire_jst_seconds;",
-                "}else{",
-                //cookieにconversationIDがない場合はcookieから取得する
-                "var tmp = document.cookie.split(';');",
-                "for(var i=0;i<tmp.length;i++){",
-                "var data = tmp[i].split('=');",
-                "if (data[0].trim() == 'obotConversationId') { var cid = unescape(data[1]); }else{continue;}}",
-                "}",
-                'BotChat.App({',
-                "directLine: { secret: '".$atts['obotai_code_id']."', conversationId: cid, webSocket: false },",
-                "user: { id: '".$user."' }, bot: { id: 'botid' }, resize: 'window', chatTitle: '".$name."', showUploadButton: false",
-                "}, document.getElementById('bot'));",
-                '/* トグル表示 */',
-                '(function($){',
-                "$('#bot').draggable({ handle: '.wc-header' });",
-                "$('#bot_toggle').on('click', function(){",
-                "$('#bot').css('visibility')=='hidden' ? $('#bot').css({visibility:'visible'}).animate({opacity: 1}, 500) : $('#bot').css({visibility:'hidden'}).animate({opacity: 0}, 500);",
-                "});",
-                "})(jQuery);",
-                "});",
-                "request.send();}",
-                "obotai_request();",
-                '</script></div>',
-            ];
-            $arr_footer = implode('', $arr_footer);
+            return "<!-- obotai CIDが未設定です -->";
+        }
+
+        $arr_footer = '<script defer src="https://app.webchat.obotai.com/loader/?cid='.$atts['obotai_code_id'].'"></script>';
+        if ($results[0]->extra_js !== '') {
+            $arr_footer = $arr_footer . '<script>' . $results[0]->extra_js . '</script>';
         }
         return $arr_footer;
     }
